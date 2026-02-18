@@ -7,6 +7,7 @@ import (
 	"strconv"
 )
 
+// ====================================================================================================================
 func main() {
 	for i := range 10 {
 		fmt.Println("Hello, World! " + strconv.Itoa(i))
@@ -20,6 +21,18 @@ func main() {
 		fmt.Println("Does not equal 1")
 	}
 
+	switch x {
+	case 1:
+		fmt.Println("Equals 1")
+	case 2:
+		fmt.Println("Equals 2")
+	default:
+		fmt.Println("Not 1 or 2")
+	}
+
+// ====================================================================================================================
+// maps
+	// make is for maps, slices and channels, it allocates and initializes the data structure and returns a reference to it.
 	m := make(map[string]int)
 	m["one"] = 1
 	m["two"] = 2
@@ -39,23 +52,43 @@ func main() {
 		fmt.Println("Sorted Key:", k, "Value:", m[k])
 	}
 
-	switch x {
-	case 1:
-		fmt.Println("Equals 1")
-	case 2:
-		fmt.Println("Equals 2")
-	default:
-		fmt.Println("Not 1 or 2")
+// ====================================================================================================================
+// arrays making an array which most defineitely is NOT an object  
+	arrayOfInt := make([]int, 0, 10)
+	fmt.Println("Length:", len(arrayOfInt), "Capacity:", cap(arrayOfInt))
+	arrayOfInt = append(arrayOfInt, 1, 2, 3)
+	fmt.Println("Length:", len(arrayOfInt), "Capacity:", cap(arrayOfInt))
+
+	for i, v := range arrayOfInt {
+		fmt.Println("Index:", i, "Value:", v)
 	}
 
+	for _, v := range arrayOfInt {
+		fmt.Println("Value:", v)
+	}
+
+// ====================================================================================================================
+// interface
 	var greeters []Greeter = []Greeter{&User{Name: "Simon", Age: 68}, &Dog{Name: "Rover", Breed: "Golden Retriever"}}
 	for _, g := range greeters {
 		g.Greet()
 	}
 
 	fmt.Println(Max(1, 2))
-}
 
+	// heap - new initialises to zeroes
+	pi := new(int32)	
+	fmt.Println("Pi value:", *pi)
+
+	// or
+	var pi2 = new(int32)
+	fmt.Println("Pi2 value:", *pi2)
+
+	// no delete or free, the garbage collector will take care of it when there are no more references to the allocated memory
+} // main
+
+// ====================================================================================================================
+// struct
 type User struct {
 	Name string
 	Age  int
@@ -74,15 +107,21 @@ func (d *Dog) Greet() {
 	fmt.Println("Woof from", d.Name)
 }
 
-// Greeter is an interface for greeting immplicitly associated with User and Dog since the function has the correct sig.
+// Greeter is an interface for greeting implicitly associated with User and Dog since the function has the correct sig.
+// ie there is no ccomplementary "implements" keyword, the compiler will check if the function signatures match and if they do,
+// it will consider the type to implement the interface.
 type Greeter interface {
 	Greet()
 }
 
+// ====================================================================================================================
 // Generic function to get the maximum of two ordered values
+
 func Max[T cmp.Ordered](a, b T) T {
 	if a > b {
 		return a
 	}
 	return b
 }
+
+// ====================================================================================================================
