@@ -2,7 +2,7 @@
 <html>
 <head>
     <title>{{.Title}}</title>
-	<link rel="stylesheet" type="text/css" href="/static/style.css" />
+	<link rel="stylesheet" type="text/css" href="/static/gps.css" />
 </head>
 <body>
     <h1>{{.Title}}</h1>
@@ -28,16 +28,16 @@
 
         <table>
             <tr>
-                <th>Source</th>
-                <th>ID</th>
+                <th>Track Id</th>
                 <th>Description</th>
+                <th>Source</th>
                 <th>Category ID</th>
             </tr>
             {{range .Tracks}}
             <tr class="{{if eq (mod .SeqNum 2) 0}}even{{else}}odd{{end}}">
-                <td>{{.Source}}</td>
                 <td align="right">{{.ID}}</td>
                 <td>{{.Description}}</td>
+                <td>{{.Source}}</td>
                 <td align="right">{{.Category_ID}}</td>
             </tr>
             {{end}}

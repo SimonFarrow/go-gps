@@ -21,7 +21,7 @@ type Track struct {
 	ID          int    `db:"id"`
 	Source      string `db:"source"`
 	Description string `db:"description"`
-	Category_ID string `db:"category_id"`
+	Category_ID int `db:"category_id"`
 	SeqNum      int
 }
 
@@ -141,7 +141,7 @@ func parsePositiveInt(s string) (int, error) {
 
 // ====================================================================================================================
 func readTracks(db *sql.DB) []Track {
-	rows, err := db.Query("SELECT ID, Source, Description, Category_ID FROM tracks")
+	rows, err := db.Query("SELECT ID, Source, Description, Category_ID FROM tracks ORDER BY ID DESC")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -222,6 +222,7 @@ func main() {
 	databaseInfo := configMap["database"].(map[string]any)
 	fmt.Println(databaseInfo["dbtype"])
 	db := openDatabase(databaseInfo)
+	defer db.Close()
 
 	pingErr := db.Ping()
 	if pingErr != nil {
