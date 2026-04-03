@@ -34,7 +34,7 @@
                 <th>Category ID</th>
             </tr>
             {{range .Tracks}}
-            <tr>
+            <tr class="{{if eq (mod .SeqNum 2) 0}}even{{else}}odd{{end}}">
                 <td>{{.Source}}</td>
                 <td align="right">{{.ID}}</td>
                 <td>{{.Description}}</td>

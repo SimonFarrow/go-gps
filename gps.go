@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"github.com/go-sql-driver/mysql"
 	"html/template"
 	"io"
 	"log"
@@ -12,6 +11,7 @@ import (
 	"os"
 	"regexp"
 	"runtime"
+	"github.com/go-sql-driver/mysql"
 )
 
 // ====================================================================================================================
@@ -22,6 +22,7 @@ type Track struct {
 	Source      string `db:"source"`
 	Description string `db:"description"`
 	Category_ID string `db:"category_id"`
+	SeqNum      int
 }
 
 type Page struct {
@@ -39,6 +40,7 @@ var templates = template.Must(template.New("").Funcs(template.FuncMap{
 	"add": func(a, b int) int { return a + b },
 	"sub": func(a, b int) int { return a - b },
 	"mul": func(a, b int) int { return a * b },
+	"mod": func(a, b int) int { return a % b },
 	"min": func(a, b int) int {
 		if a < b {
 			return a
@@ -113,6 +115,9 @@ func viewHandler(w http.ResponseWriter, r *http.Request, allTracks []Track) {
 	var pageTracks []Track
 	if offset < totalTracks {
 		pageTracks = allTracks[offset:end]
+		for i := range pageTracks {
+			pageTracks[i].SeqNum = offset + i + 1
+		}
 	}
 
 	page := &Page{
