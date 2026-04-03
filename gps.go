@@ -45,26 +45,8 @@ func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
 }
 
 // ====================================================================================================================
-func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		m := validPath.FindStringSubmatch(r.URL.Path)
-		if m == nil {
-			http.NotFound(w, r)
-			return
-		}
-		fn(w, r, m[2])
-	}
-}
-
-// ====================================================================================================================
-func viewHandler(w http.ResponseWriter, r *http.Request, title string) {
-	//p, err := loadPage(title)
-	//if err != nil {
-	//	http.Redirect(w, r, "/edit/"+title, http.StatusFound)
-	//	return
-	//}
-	p := Page{"GPS", nil}
-	renderTemplate(w, "view", &p)
+func viewHandler(w http.ResponseWriter, r *http.Request, page *Page) {
+	renderTemplate(w, "view", page)
 }
 
 // ====================================================================================================================
@@ -138,10 +120,12 @@ func main() {
 			log.Fatal(err)
 		}
 		tracks = append(tracks, track)
-		fmt.Printf("ID: %d, Name: %s, Description: %s, Category ID: %s\n", track.ID, track.Name, track.Description, track.CategoryID)
+		// fmt.Printf("ID: %d, Name: %s, Description: %s, Category ID: %s\n", track.ID, track.Name, track.Description, track.CategoryID)
 	}
 
-	http.HandleFunc("/view/", makeHandler(viewHandler))
+	http.HandleFunc("/view/", func(w http.ResponseWriter, r *http.Request) {
+		viewHandler(w, r, &Page{Title: "Tracks", Tracks: tracks})
+	})
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 

@@ -1,3 +1,31 @@
-<h1>{{.Title}}</h1>
-
-<div>{{printf "%s" ".Body"}}</div>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{.Title}}</title>
+</head>
+<body>
+    <h1>{{.Title}}</h1>
+    
+    {{if .Tracks}}
+        <h2>Available Tracks:</h2>
+        <table>
+            <tr>
+                <th>Name</th>
+                <th>ID</th>
+                <th>Description</th>
+                <th>Category ID</th>
+            </tr>
+            {{range .Tracks}}
+            <tr>
+                <td>{{.Name}}</td>
+                <td align="right">{{.ID}}</td>
+                <td>{{.Description}}</td>
+                <td align="right">{{.CategoryID}}</td>
+            </tr>
+            {{end}}
+        </table>
+    {{else}}
+        <p>No tracks available.</p>
+    {{end}}
+</body>
+</html>
