@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"github.com/go-sql-driver/mysql"
 	"html/template"
 	"io"
 	"log"
@@ -11,7 +12,6 @@ import (
 	"os"
 	"regexp"
 	"runtime"
-	"github.com/go-sql-driver/mysql"
 )
 
 // ====================================================================================================================
@@ -21,7 +21,7 @@ type Track struct {
 	ID          int    `db:"id"`
 	Source      string `db:"source"`
 	Description string `db:"description"`
-	CategoryID  string `db:"category_id"`
+	Category_ID string `db:"category_id"`
 }
 
 type Page struct {
@@ -59,7 +59,7 @@ var templates = template.Must(template.New("").Funcs(template.FuncMap{
 		return result
 	},
 }).ParseFiles("html/view.html"))
-var db *sql.DB
+
 var validPath = regexp.MustCompile("^/(view)/([a-zA-Z0-9]+)$")
 
 // ====================================================================================================================
@@ -78,7 +78,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request, allTracks []Track) {
 
 	// Set defaults
 	currentPage := 1
-	pageSize := 50
+	pageSize := 25
 
 	// Parse page number
 	if pageStr != "" {
@@ -127,6 +127,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request, allTracks []Track) {
 	renderTemplate(w, "view", page)
 }
 
+// ====================================================================================================================
 func parsePositiveInt(s string) (int, error) {
 	var result int
 	_, err := fmt.Sscanf(s, "%d", &result)
@@ -135,54 +136,24 @@ func parsePositiveInt(s string) (int, error) {
 
 // ====================================================================================================================
 func main() {
-	// Open our jsonFile
-	jsonFileStr := "/Users/simonf/Documents/GPS/server/cgi-bin/gps_config.json"
-	if runtime.GOOS == "windows" {
-		jsonFileStr = "C:" + jsonFileStr
+
+	var configFileStr string
+	if len(os.Args) > 1 {
+		configFileStr = os.Args[1]
 	} else {
-		jsonFileStr = "/mnt/c" + jsonFileStr
+		// Open our default jsonFile
+		configFileStr = "/Users/simonf/Documents/GPS/server/cgi-bin/gps_config.json"
+		if runtime.GOOS == "windows" {
+			configFileStr = "C:" + configFileStr
+		} else {
+			configFileStr = "/mnt/c" + configFileStr
+		}
 	}
 
-	jsonFile, err := os.Open(jsonFileStr)
-	if err != nil {
-		fmt.Println(err)
-	} else {
-		fmt.Println("Successfully Opened file")
-		// defer the closing of our jsonFile so that we can parse it later on
-		defer jsonFile.Close()
-	}
-
-	byteValue, err := io.ReadAll(jsonFile)
-	if err != nil {
-		fmt.Println("Error reading file:", err)
-		return
-	}
-
-	var result map[string]interface{}
-	err = json.Unmarshal([]byte(byteValue), &result)
-	if err != nil {
-		fmt.Println("Error unmarshalling JSON:", err)
-		return
-	}
-
-	jdb := result["database"].(map[string]any)
-	fmt.Println(jdb["dbtype"])
-
-	// Capture connection properties.
-	cfg := &mysql.Config{
-		User:                 jdb["user"].(string),
-		Passwd:               jdb["password"].(string),
-		Net:                  "tcp",
-		Addr:                 jdb["host"].(string) + ":3306",
-		DBName:               jdb["schema"].(string),
-		AllowNativePasswords: true, // AllowNativePasswords is required when the MySQL user account has a password that is stored using the native password hashing method.
-	}
-
-	// Get a database handle. NB not MariaDB as per the config
-	db, err = sql.Open("mysql", cfg.FormatDSN())
-	if err != nil {
-		log.Fatal(err)
-	}
+	configMap := readConfigFile(configFileStr)
+	databaseInfo := configMap["database"].(map[string]any)
+	fmt.Println(databaseInfo["dbtype"])
+	db := openDatabase(databaseInfo)
 
 	pingErr := db.Ping()
 	if pingErr != nil {
@@ -190,7 +161,21 @@ func main() {
 	}
 	fmt.Println("Connected!")
 
-	rows, err := db.Query("SELECT * FROM tracks")
+	fs := http.FileServer(http.Dir("./static"))
+	mux := http.NewServeMux()
+	mux.Handle("/static/", http.StripPrefix("/static/", fs))
+
+	tracks := readTracks(db)
+
+	mux.HandleFunc("/view/", func(w http.ResponseWriter, r *http.Request) {
+		viewHandler(w, r, tracks)
+	})
+	log.Fatal(http.ListenAndServe(":8080", mux))
+}
+
+// ====================================================================================================================
+func readTracks(db *sql.DB) []Track {
+	rows, err := db.Query("SELECT ID, Source, Description, Category_ID FROM tracks")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -199,18 +184,56 @@ func main() {
 	track := Track{}
 	tracks := []Track{}
 	for rows.Next() {
-		err = rows.Scan(&track.ID, &track.Source, &track.Description, &track.CategoryID)
+		err = rows.Scan(&track.ID, &track.Source, &track.Description, &track.Category_ID)
 		if err != nil {
 			log.Fatal(err)
 		}
 		tracks = append(tracks, track)
 		// fmt.Printf("ID: %d, Source: %s, Description: %s, Category ID: %s\n", track.ID, track.Source, track.Description, track.CategoryID)
 	}
+	return tracks
+}
 
-	http.HandleFunc("/view/", func(w http.ResponseWriter, r *http.Request) {
-		viewHandler(w, r, tracks)
-	})
-	log.Fatal(http.ListenAndServe(":8080", nil))
+// ====================================================================================================================
+func openDatabase(configMap map[string]any) *sql.DB {
+	cfg := &mysql.Config{
+		User:                 configMap["user"].(string),
+		Passwd:               configMap["password"].(string),
+		Net:                  "tcp",
+		Addr:                 configMap["host"].(string) + ":3306",
+		DBName:               configMap["schema"].(string),
+		AllowNativePasswords: true, // AllowNativePasswords is required when the MySQL user account has a password that is stored using the native password hashing method.
+	}
+
+	db, err := sql.Open("mysql", cfg.FormatDSN())
+	if err != nil {
+		log.Fatal("Error opening database: ", err)
+	}
+	return db
+}
+
+// ====================================================================================================================
+func readConfigFile(configFileStr string) map[string]interface{} {
+	configFile, err := os.Open(configFileStr)
+	if err != nil {
+		log.Fatal("Error opening config file: ", err)
+	} else {
+		fmt.Println("Successfully Opened file")
+		// defer the closing of our configFile so that we can parse it later on
+		defer configFile.Close()
+	}
+
+	byteValue, err := io.ReadAll(configFile)
+	if err != nil {
+		log.Fatal("Error reading file:", err)
+	}
+
+	var configMap map[string]interface{}
+	err = json.Unmarshal([]byte(byteValue), &configMap)
+	if err != nil {
+		log.Fatal("Error unmarshalling JSON:", err)
+	}
+	return configMap
 }
 
 // ====================================================================================================================
