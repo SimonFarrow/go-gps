@@ -4,19 +4,80 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"io"
 	"log"
+	"net/http"
 	"os"
+	"regexp"
+	"runtime"
+
 	"github.com/go-sql-driver/mysql"
 )
 
 // ====================================================================================================================
-var db *sql.DB
+// Types
 
+type Track struct {
+	ID          int    `db:"id"`
+	Name        string `db:"name"`
+	Description string `db:"description"`
+	CategoryID  string `db:"category_id"`
+}
+
+type Page struct {
+	Title  string
+	Tracks []Track
+}
+
+// ====================================================================================================================
+// Globals
+var templates = template.Must(template.ParseFiles("html/view.html"))
+var db *sql.DB
+var validPath = regexp.MustCompile("^/(view)/([a-zA-Z0-9]+)$")
+
+// ====================================================================================================================
+func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
+	err := templates.ExecuteTemplate(w, tmpl+".html", p)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+// ====================================================================================================================
+func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		m := validPath.FindStringSubmatch(r.URL.Path)
+		if m == nil {
+			http.NotFound(w, r)
+			return
+		}
+		fn(w, r, m[2])
+	}
+}
+
+// ====================================================================================================================
+func viewHandler(w http.ResponseWriter, r *http.Request, title string) {
+	//p, err := loadPage(title)
+	//if err != nil {
+	//	http.Redirect(w, r, "/edit/"+title, http.StatusFound)
+	//	return
+	//}
+	p := Page{"GPS", nil}
+	renderTemplate(w, "view", &p)
+}
+
+// ====================================================================================================================
 func main() {
 	// Open our jsonFile
-	jsonFile, err := os.Open("C:/Users/simonf/Documents/GPS/server/cgi-bin/gps_config.json")
-	// if we os.Open returns an error then handle it
+	jsonFileStr := "/Users/simonf/Documents/GPS/server/cgi-bin/gps_config.json"
+	if runtime.GOOS == "windows" {
+		jsonFileStr = "C:" + jsonFileStr
+	} else {
+		jsonFileStr = "/mnt/c" + jsonFileStr
+	}
+
+	jsonFile, err := os.Open(jsonFileStr)
 	if err != nil {
 		fmt.Println(err)
 	} else {
@@ -43,11 +104,11 @@ func main() {
 
 	// Capture connection properties.
 	cfg := &mysql.Config{
-		User:   jdb["user"].(string),
-		Passwd: jdb["password"].(string),
-		Net:    "tcp",
-		Addr:   jdb["host"].(string)+":3306",
-		DBName: jdb["schema"].(string),
+		User:                 jdb["user"].(string),
+		Passwd:               jdb["password"].(string),
+		Net:                  "tcp",
+		Addr:                 jdb["host"].(string) + ":3306",
+		DBName:               jdb["schema"].(string),
 		AllowNativePasswords: true, // AllowNativePasswords is required when the MySQL user account has a password that is stored using the native password hashing method.
 	}
 
@@ -67,19 +128,21 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-    defer rows.Close()
+	defer rows.Close()
 
-	var id int
-	var name string
-	var description string
-	var categoryid string
+	track := Track{}
+	tracks := []Track{}
 	for rows.Next() {
-		err = rows.Scan(&id, &name, &description, &categoryid)
+		err = rows.Scan(&track.ID, &track.Name, &track.Description, &track.CategoryID)
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Printf("ID: %d, Name: %s, Description: %s, Category ID: %s\n", id, name, description, categoryid)
+		tracks = append(tracks, track)
+		fmt.Printf("ID: %d, Name: %s, Description: %s, Category ID: %s\n", track.ID, track.Name, track.Description, track.CategoryID)
 	}
+
+	http.HandleFunc("/view/", makeHandler(viewHandler))
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
 // ====================================================================================================================
