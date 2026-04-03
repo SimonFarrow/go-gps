@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"github.com/go-sql-driver/mysql"
 	"html/template"
 	"io"
 	"log"
@@ -12,6 +11,7 @@ import (
 	"os"
 	"regexp"
 	"runtime"
+	"github.com/go-sql-driver/mysql"
 )
 
 // ====================================================================================================================
@@ -25,13 +25,40 @@ type Track struct {
 }
 
 type Page struct {
-	Title  string
-	Tracks []Track
+	Title       string
+	Tracks      []Track
+	CurrentPage int
+	PageSize    int
+	TotalTracks int
+	TotalPages  int
 }
 
 // ====================================================================================================================
 // Globals
-var templates = template.Must(template.ParseFiles("html/view.html"))
+var templates = template.Must(template.New("").Funcs(template.FuncMap{
+	"add": func(a, b int) int { return a + b },
+	"sub": func(a, b int) int { return a - b },
+	"mul": func(a, b int) int { return a * b },
+	"min": func(a, b int) int {
+		if a < b {
+			return a
+		}
+		return b
+	},
+	"max": func(a, b int) int {
+		if a > b {
+			return a
+		}
+		return b
+	},
+	"intRange": func(start, end int) []int {
+		var result []int
+		for i := start; i <= end; i++ {
+			result = append(result, i)
+		}
+		return result
+	},
+}).ParseFiles("html/view.html"))
 var db *sql.DB
 var validPath = regexp.MustCompile("^/(view)/([a-zA-Z0-9]+)$")
 
@@ -44,8 +71,66 @@ func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
 }
 
 // ====================================================================================================================
-func viewHandler(w http.ResponseWriter, r *http.Request, page *Page) {
+func viewHandler(w http.ResponseWriter, r *http.Request, allTracks []Track) {
+	// Parse query parameters
+	pageStr := r.URL.Query().Get("page")
+	pageSizeStr := r.URL.Query().Get("pageSize")
+
+	// Set defaults
+	currentPage := 1
+	pageSize := 50
+
+	// Parse page number
+	if pageStr != "" {
+		if p, err := parsePositiveInt(pageStr); err == nil && p > 0 {
+			currentPage = p
+		}
+	}
+
+	// Parse page size
+	if pageSizeStr != "" {
+		if ps, err := parsePositiveInt(pageSizeStr); err == nil && ps > 0 && ps <= 1000 {
+			pageSize = ps
+		}
+	}
+
+	totalTracks := len(allTracks)
+	totalPages := (totalTracks + pageSize - 1) / pageSize
+
+	// Validate page number
+	if currentPage > totalPages && totalPages > 0 {
+		currentPage = totalPages
+	}
+
+	// Calculate offset
+	offset := (currentPage - 1) * pageSize
+	end := offset + pageSize
+	if end > totalTracks {
+		end = totalTracks
+	}
+
+	// Get tracks for current page
+	var pageTracks []Track
+	if offset < totalTracks {
+		pageTracks = allTracks[offset:end]
+	}
+
+	page := &Page{
+		Title:       "Tracks",
+		Tracks:      pageTracks,
+		CurrentPage: currentPage,
+		PageSize:    pageSize,
+		TotalTracks: totalTracks,
+		TotalPages:  totalPages,
+	}
+
 	renderTemplate(w, "view", page)
+}
+
+func parsePositiveInt(s string) (int, error) {
+	var result int
+	_, err := fmt.Sscanf(s, "%d", &result)
+	return result, err
 }
 
 // ====================================================================================================================
@@ -123,7 +208,7 @@ func main() {
 	}
 
 	http.HandleFunc("/view/", func(w http.ResponseWriter, r *http.Request) {
-		viewHandler(w, r, &Page{Title: "Tracks", Tracks: tracks})
+		viewHandler(w, r, tracks)
 	})
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
