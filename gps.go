@@ -135,45 +135,6 @@ func parsePositiveInt(s string) (int, error) {
 }
 
 // ====================================================================================================================
-func main() {
-
-	var configFileStr string
-	if len(os.Args) > 1 {
-		configFileStr = os.Args[1]
-	} else {
-		// Open our default jsonFile
-		configFileStr = "/Users/simonf/Documents/GPS/server/cgi-bin/gps_config.json"
-		if runtime.GOOS == "windows" {
-			configFileStr = "C:" + configFileStr
-		} else {
-			configFileStr = "/mnt/c" + configFileStr
-		}
-	}
-
-	configMap := readConfigFile(configFileStr)
-	databaseInfo := configMap["database"].(map[string]any)
-	fmt.Println(databaseInfo["dbtype"])
-	db := openDatabase(databaseInfo)
-
-	pingErr := db.Ping()
-	if pingErr != nil {
-		log.Fatal(pingErr)
-	}
-	fmt.Println("Connected!")
-
-	fs := http.FileServer(http.Dir("./static"))
-	mux := http.NewServeMux()
-	mux.Handle("/static/", http.StripPrefix("/static/", fs))
-
-	tracks := readTracks(db)
-
-	mux.HandleFunc("/view/", func(w http.ResponseWriter, r *http.Request) {
-		viewHandler(w, r, tracks)
-	})
-	log.Fatal(http.ListenAndServe(":8080", mux))
-}
-
-// ====================================================================================================================
 func readTracks(db *sql.DB) []Track {
 	rows, err := db.Query("SELECT ID, Source, Description, Category_ID FROM tracks")
 	if err != nil {
@@ -215,12 +176,12 @@ func openDatabase(configMap map[string]any) *sql.DB {
 // ====================================================================================================================
 func readConfigFile(configFileStr string) map[string]interface{} {
 	configFile, err := os.Open(configFileStr)
-	if err != nil {
-		log.Fatal("Error opening config file: ", err)
-	} else {
+	if err == nil {
 		fmt.Println("Successfully Opened file")
 		// defer the closing of our configFile so that we can parse it later on
 		defer configFile.Close()
+	} else {
+		log.Fatal("Error opening config file: ", err)
 	}
 
 	byteValue, err := io.ReadAll(configFile)
@@ -234,6 +195,45 @@ func readConfigFile(configFileStr string) map[string]interface{} {
 		log.Fatal("Error unmarshalling JSON:", err)
 	}
 	return configMap
+}
+
+// ====================================================================================================================
+func main() {
+
+	var configFileStr string
+	if len(os.Args) > 1 {
+		configFileStr = os.Args[1]
+	} else {
+		// Open our default jsonFile
+		configFileStr = "/Users/simonf/Documents/GPS/server/cgi-bin/gps_config.json"
+		if runtime.GOOS == "windows" {
+			configFileStr = "C:" + configFileStr
+		} else {
+			configFileStr = "/mnt/c" + configFileStr
+		}
+	}
+
+	configMap := readConfigFile(configFileStr)
+	databaseInfo := configMap["database"].(map[string]any)
+	fmt.Println(databaseInfo["dbtype"])
+	db := openDatabase(databaseInfo)
+
+	pingErr := db.Ping()
+	if pingErr != nil {
+		log.Fatal(pingErr)
+	}
+	fmt.Println("Connected!")
+
+	fs := http.FileServer(http.Dir("./static"))
+	mux := http.NewServeMux()
+	mux.Handle("/static/", http.StripPrefix("/static/", fs))
+
+	tracks := readTracks(db)
+
+	mux.HandleFunc("/view/", func(w http.ResponseWriter, r *http.Request) {
+		viewHandler(w, r, tracks)
+	})
+	log.Fatal(http.ListenAndServe(":8080", mux))
 }
 
 // ====================================================================================================================
