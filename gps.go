@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"github.com/go-sql-driver/mysql"
 	"html/template"
 	"io"
 	"log"
@@ -11,8 +12,6 @@ import (
 	"os"
 	"regexp"
 	"runtime"
-
-	"github.com/go-sql-driver/mysql"
 )
 
 // ====================================================================================================================
@@ -20,7 +19,7 @@ import (
 
 type Track struct {
 	ID          int    `db:"id"`
-	Name        string `db:"name"`
+	Source      string `db:"source"`
 	Description string `db:"description"`
 	CategoryID  string `db:"category_id"`
 }
@@ -115,12 +114,12 @@ func main() {
 	track := Track{}
 	tracks := []Track{}
 	for rows.Next() {
-		err = rows.Scan(&track.ID, &track.Name, &track.Description, &track.CategoryID)
+		err = rows.Scan(&track.ID, &track.Source, &track.Description, &track.CategoryID)
 		if err != nil {
 			log.Fatal(err)
 		}
 		tracks = append(tracks, track)
-		// fmt.Printf("ID: %d, Name: %s, Description: %s, Category ID: %s\n", track.ID, track.Name, track.Description, track.CategoryID)
+		// fmt.Printf("ID: %d, Source: %s, Description: %s, Category ID: %s\n", track.ID, track.Source, track.Description, track.CategoryID)
 	}
 
 	http.HandleFunc("/view/", func(w http.ResponseWriter, r *http.Request) {
