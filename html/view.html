@@ -56,15 +56,15 @@
                 <td>{{.StartTime}}</td>
                 <td>{{.FinishTime}}</td>
                 <td>{{.TotalTime}}</td>
-                <td>{{".Region"}}</td>
-                <td>{{".Level"}}</td>
+                <td>{{.Region}}</td>
+                <td>{{.Level}}</td>
                 <td>{{.LengthMiles}}</td>
-                <td>{{.MaxSpeed}}</td>
-                <td>{{.AvgSpeed}}</td>
+                <td>{{if .MaxSpeed.Valid}}{{.MaxSpeed.Float64}}{{else}}N/A{{end}}</td>
+                <td>{{if .AvgSpeed.Valid}}{{.AvgSpeed.Float64}}{{else}}N/A{{end}}</td>
                 <td>{{.Up}}</td>
                 <td>{{.Down}}</td>
                 <td>{{.TotalAscent}}</td>
-                <td>{{".Type"}}</td>
+                <td>{{.Type}}</td>
             </tr>
             {{end}}
         </table>

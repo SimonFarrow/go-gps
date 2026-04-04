@@ -17,24 +17,24 @@ import (
 // Types
 
 type Track struct {
-	ID          int     `db:"id"`
-	Source      string  `db:"source"`
-	Description string  `db:"description"`
-	Points      int     `db:"points"`
-	Segments    int     `db:"segments"`
-	StartTime   string  `db:"start_time"`
-	FinishTime  string  `db:"finish_time"`
-	TotalTime   float32 `db:"total_time"`
-	//Region      string  `db:"region"`
-	//Level       int     `db:"level"`
+	ID          int             `db:"id"`
+	Source      string          `db:"source"`
+	Description string          `db:"description"`
+	Points      int             `db:"points"`
+	Segments    int             `db:"segments"`
+	StartTime   string          `db:"start_time"`
+	FinishTime  string          `db:"finish_time"`
+	TotalTime   float32         `db:"total_time"`
+	Region      string          `db:"region"`
+	Level       int             `db:"level"`
 	LengthMiles float32         `db:"length_miles"`
 	MaxSpeed    sql.NullFloat64 `db:"max_speed"`
 	AvgSpeed    sql.NullFloat64 `db:"avg_speed"`
 	Up          float32         `db:"up"`
 	Down        float32         `db:"down"`
 	TotalAscent float32         `db:"total_ascent"`
-	//Type        int     `db:"type"`
-	SeqNum int
+	Type        int             `db:"category_id"`
+	SeqNum      int
 }
 
 type Page struct {
@@ -153,7 +153,7 @@ func parsePositiveInt(s string) (int, error) {
 
 // ====================================================================================================================
 func readTracks(db *sql.DB) []Track {
-	rows, err := db.Query("SELECT ID, Source, Description, Points, Segments, start_time, finish_time, total_time, length_miles, max_speed, avg_speed, up, down, total_ascent FROM tracks, track_legs WHERE tracks.ID = track_legs.Track_ID ORDER BY tracks.ID DESC")
+	rows, err := db.Query("SELECT ID, Source, tracks.Description as Description, Points, Segments, start_time, finish_time, total_time, TrackRegion.description as region, level, length_miles, max_speed, avg_speed, up, down, total_ascent, tracks.category_id as Type FROM tracks, track_legs, TrackRegion WHERE tracks.ID = track_legs.Track_ID and tracks.ID = TrackRegion.Track_ID ORDER BY tracks.ID DESC")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -162,7 +162,7 @@ func readTracks(db *sql.DB) []Track {
 	track := Track{}
 	tracks := []Track{}
 	for rows.Next() {
-		err = rows.Scan(&track.ID, &track.Source, &track.Description, &track.Points, &track.Segments, &track.StartTime, &track.FinishTime, &track.TotalTime, &track.LengthMiles, &track.MaxSpeed, &track.AvgSpeed, &track.Up, &track.Down, &track.TotalAscent)
+		err = rows.Scan(&track.ID, &track.Source, &track.Description, &track.Points, &track.Segments, &track.StartTime, &track.FinishTime, &track.TotalTime, &track.Region, &track.Level, &track.LengthMiles, &track.MaxSpeed, &track.AvgSpeed, &track.Up, &track.Down, &track.TotalAscent, &track.Type)
 		if err != nil {
 			log.Fatal(err)
 		}
