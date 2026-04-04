@@ -4,25 +4,37 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"github.com/go-sql-driver/mysql"
 	"html/template"
 	"io"
 	"log"
 	"net/http"
 	"os"
-	"regexp"
 	"runtime"
-	"github.com/go-sql-driver/mysql"
 )
 
 // ====================================================================================================================
 // Types
 
 type Track struct {
-	ID          int    `db:"id"`
-	Source      string `db:"source"`
-	Description string `db:"description"`
-	Category_ID int `db:"category_id"`
-	SeqNum      int
+	ID          int     `db:"id"`
+	Source      string  `db:"source"`
+	Description string  `db:"description"`
+	Points      int     `db:"points"`
+	Segments    int     `db:"segments"`
+	StartTime   string  `db:"start_time"`
+	FinishTime  string  `db:"finish_time"`
+	TotalTime   float32 `db:"total_time"`
+	//Region      string  `db:"region"`
+	//Level       int     `db:"level"`
+	LengthMiles float32         `db:"length_miles"`
+	MaxSpeed    sql.NullFloat64 `db:"max_speed"`
+	AvgSpeed    sql.NullFloat64 `db:"avg_speed"`
+	Up          float32         `db:"up"`
+	Down        float32         `db:"down"`
+	TotalAscent float32         `db:"total_ascent"`
+	//Type        int     `db:"type"`
+	SeqNum int
 }
 
 type Page struct {
@@ -62,7 +74,7 @@ var templates = template.Must(template.New("").Funcs(template.FuncMap{
 	},
 }).ParseFiles("html/view.html"))
 
-var validPath = regexp.MustCompile("^/(view)/([a-zA-Z0-9]+)$")
+//var validPath = regexp.MustCompile("^/(view)/([a-zA-Z0-9]+)$")
 
 // ====================================================================================================================
 func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
@@ -141,7 +153,7 @@ func parsePositiveInt(s string) (int, error) {
 
 // ====================================================================================================================
 func readTracks(db *sql.DB) []Track {
-	rows, err := db.Query("SELECT ID, Source, Description, Category_ID FROM tracks ORDER BY ID DESC")
+	rows, err := db.Query("SELECT ID, Source, Description, Points, Segments, start_time, finish_time, total_time, length_miles, max_speed, avg_speed, up, down, total_ascent FROM tracks, track_legs WHERE tracks.ID = track_legs.Track_ID ORDER BY tracks.ID DESC")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -150,12 +162,11 @@ func readTracks(db *sql.DB) []Track {
 	track := Track{}
 	tracks := []Track{}
 	for rows.Next() {
-		err = rows.Scan(&track.ID, &track.Source, &track.Description, &track.Category_ID)
+		err = rows.Scan(&track.ID, &track.Source, &track.Description, &track.Points, &track.Segments, &track.StartTime, &track.FinishTime, &track.TotalTime, &track.LengthMiles, &track.MaxSpeed, &track.AvgSpeed, &track.Up, &track.Down, &track.TotalAscent)
 		if err != nil {
 			log.Fatal(err)
 		}
 		tracks = append(tracks, track)
-		// fmt.Printf("ID: %d, Source: %s, Description: %s, Category ID: %s\n", track.ID, track.Source, track.Description, track.CategoryID)
 	}
 	return tracks
 }
@@ -182,7 +193,6 @@ func openDatabase(configMap map[string]any) *sql.DB {
 func readConfigFile(configFileStr string) map[string]interface{} {
 	configFile, err := os.Open(configFileStr)
 	if err == nil {
-		fmt.Println("Successfully Opened file")
 		// defer the closing of our configFile so that we can parse it later on
 		defer configFile.Close()
 	} else {

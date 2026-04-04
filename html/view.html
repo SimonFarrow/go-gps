@@ -31,14 +31,40 @@
                 <th>Track Id</th>
                 <th>Description</th>
                 <th>Source</th>
-                <th>Category ID</th>
+                <th>Points</th>
+                <th>Segments</th>
+                <th>Start Time</th>
+                <th>Finish Time</th>
+                <th>Duration</th>
+                <th>Region</th>
+                <th>Level</th>
+                <th>Length (miles)</th>
+                <th>Max Speed</th>
+                <th>AvgSpeed</th>
+                <th>Up</th>
+                <th>Down</th>
+                <th>Total Ascent</th>
+                <th>Type</th>
             </tr>
             {{range .Tracks}}
             <tr class="{{if eq (mod .SeqNum 2) 0}}even{{else}}odd{{end}}">
                 <td align="right">{{.ID}}</td>
                 <td>{{.Description}}</td>
                 <td>{{.Source}}</td>
-                <td align="right">{{.Category_ID}}</td>
+                <td align="right">{{.Points}}</td>
+                <td align="right">{{.Segments}}</td>
+                <td>{{.StartTime}}</td>
+                <td>{{.FinishTime}}</td>
+                <td>{{.TotalTime}}</td>
+                <td>{{".Region"}}</td>
+                <td>{{".Level"}}</td>
+                <td>{{.LengthMiles}}</td>
+                <td>{{.MaxSpeed}}</td>
+                <td>{{.AvgSpeed}}</td>
+                <td>{{.Up}}</td>
+                <td>{{.Down}}</td>
+                <td>{{.TotalAscent}}</td>
+                <td>{{".Type"}}</td>
             </tr>
             {{end}}
         </table>
