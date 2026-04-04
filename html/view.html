@@ -48,23 +48,23 @@
             </tr>
             {{range .Tracks}}
             <tr class="{{if eq (mod .SeqNum 2) 0}}even{{else}}odd{{end}}">
-                <td align="right">{{.ID}}</td>
+                <td  style="text-align:right">{{.ID}}</td>
                 <td>{{.Description}}</td>
                 <td>{{.Source}}</td>
-                <td align="right">{{.Points}}</td>
-                <td align="right">{{.Segments}}</td>
+                <td style="text-align:right">{{.Points}}</td>
+                <td style="text-align:right">{{.Segments}}</td>
                 <td>{{.StartTime}}</td>
                 <td>{{.FinishTime}}</td>
-                <td>{{.TotalTime}}</td>
+                <td style="text-align:right">{{.TotalTime}}</td>
                 <td>{{.Region}}</td>
-                <td>{{.Level}}</td>
-                <td>{{.LengthMiles}}</td>
-                <td>{{if .MaxSpeed.Valid}}{{.MaxSpeed.Float64}}{{else}}N/A{{end}}</td>
-                <td>{{if .AvgSpeed.Valid}}{{.AvgSpeed.Float64}}{{else}}N/A{{end}}</td>
-                <td>{{.Up}}</td>
-                <td>{{.Down}}</td>
-                <td>{{.TotalAscent}}</td>
-                <td>{{.Type}}</td>
+                <td style="text-align:right">{{.Level}}</td>
+                <td style="text-align:right">{{.LengthMiles}}</td>
+                <td style="text-align:right">{{if .MaxSpeed.Valid}}{{.MaxSpeed.Float64}}{{else}}N/A{{end}}</td>
+                <td style="text-align:right">{{if .AvgSpeed.Valid}}{{.AvgSpeed.Float64}}{{else}}N/A{{end}}</td>
+                <td style="text-align:right">{{.Up}}</td>
+                <td style="text-align:right">{{.Down}}</td>
+                <td style="text-align:right">{{.TotalAscent}}</td>
+                <td style="text-align:right">{{.Type}}</td>
             </tr>
             {{end}}
         </table>
