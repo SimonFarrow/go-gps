@@ -33,7 +33,7 @@ type Track struct {
 	Up          float32         `db:"up"`
 	Down        float32         `db:"down"`
 	TotalAscent float32         `db:"total_ascent"`
-	Type        int             `db:"category_id"`
+	CategoryID  int             `db:"category_id"`
 	SeqNum      int
 }
 
@@ -72,9 +72,7 @@ var templates = template.Must(template.New("").Funcs(template.FuncMap{
 		}
 		return result
 	},
-}).ParseFiles("html/view.html"))
-
-//var validPath = regexp.MustCompile("^/(view)/([a-zA-Z0-9]+)$")
+}).ParseFiles("html/summary.html"))
 
 // ====================================================================================================================
 func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
@@ -85,7 +83,7 @@ func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
 }
 
 // ====================================================================================================================
-func viewHandler(w http.ResponseWriter, r *http.Request, allTracks []Track) {
+func summaryHandler(w http.ResponseWriter, r *http.Request, allTracks []Track) {
 	// Parse query parameters
 	pageStr := r.URL.Query().Get("page")
 	pageSizeStr := r.URL.Query().Get("pageSize")
@@ -141,7 +139,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request, allTracks []Track) {
 		TotalPages:  totalPages,
 	}
 
-	renderTemplate(w, "view", page)
+	renderTemplate(w, "summary", page)
 }
 
 // ====================================================================================================================
@@ -153,7 +151,7 @@ func parsePositiveInt(s string) (int, error) {
 
 // ====================================================================================================================
 func readTracks(db *sql.DB) []Track {
-	rows, err := db.Query("SELECT ID, Source, tracks.Description as Description, Points, Segments, start_time, finish_time, total_time, TrackRegion.description as region, level, length_miles, max_speed, avg_speed, up, down, total_ascent, tracks.category_id as Type FROM tracks, track_legs, TrackRegion WHERE tracks.ID = track_legs.Track_ID and tracks.ID = TrackRegion.Track_ID ORDER BY tracks.ID DESC")
+	rows, err := db.Query("SELECT ID, Source, tracks.Description as Description, Points, Segments, start_time, finish_time, total_time, TrackRegion.description as region, level, length_miles, max_speed, avg_speed, up, down, total_ascent, tracks.category_id FROM tracks, track_legs, TrackRegion WHERE tracks.ID = track_legs.Track_ID and tracks.ID = TrackRegion.Track_ID ORDER BY tracks.ID DESC")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -162,7 +160,7 @@ func readTracks(db *sql.DB) []Track {
 	track := Track{}
 	tracks := []Track{}
 	for rows.Next() {
-		err = rows.Scan(&track.ID, &track.Source, &track.Description, &track.Points, &track.Segments, &track.StartTime, &track.FinishTime, &track.TotalTime, &track.Region, &track.Level, &track.LengthMiles, &track.MaxSpeed, &track.AvgSpeed, &track.Up, &track.Down, &track.TotalAscent, &track.Type)
+		err = rows.Scan(&track.ID, &track.Source, &track.Description, &track.Points, &track.Segments, &track.StartTime, &track.FinishTime, &track.TotalTime, &track.Region, &track.Level, &track.LengthMiles, &track.MaxSpeed, &track.AvgSpeed, &track.Up, &track.Down, &track.TotalAscent, &track.CategoryID)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -246,8 +244,8 @@ func main() {
 
 	tracks := readTracks(db)
 
-	mux.HandleFunc("/view/", func(w http.ResponseWriter, r *http.Request) {
-		viewHandler(w, r, tracks)
+	mux.HandleFunc("/summary/", func(w http.ResponseWriter, r *http.Request) {
+		summaryHandler(w, r, tracks)
 	})
 	log.Fatal(http.ListenAndServe(":8080", mux))
 }

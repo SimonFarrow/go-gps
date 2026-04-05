@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>{{.Title}}</title>
+    <link rel="stylesheet" type="text/css" href="/static/gps.css" />
+</head>
+
+<body>
+    <h1>{{.Title}}</h1>
+
+    {{if .TotalTracks}}
+    <div class="controls">
+        <label>Page Size:</label>
+        <select onchange="window.location.href='?page=1&pageSize=' + this.value">
+            <option value="10" {{if eq .PageSize 10}}selected{{end}}>10 per page</option>
+            <option value="25" {{if eq .PageSize 25}}selected{{end}}>25 per page</option>
+            <option value="50" {{if eq .PageSize 50}}selected{{end}}>50 per page</option>
+            <option value="100" {{if eq .PageSize 100}}selected{{end}}>100 per page</option>
+            <option value="250" {{if eq .PageSize 250}}selected{{end}}>250 per page</option>
+        </select>
+    </div>
+
+    <h2>Available Tracks:</h2>
+    <p class="page-info">
+        Showing {{if gt .TotalTracks 0}}{{add (mul (sub .CurrentPage 1) .PageSize) 1}}{{else}}0{{end}} to
+        {{if gt .TotalTracks 0}}{{if lt (mul .CurrentPage .PageSize) .TotalTracks}}{{mul .CurrentPage
+        .PageSize}}{{else}}{{.TotalTracks}}{{end}}{{else}}0{{end}}
+        of {{.TotalTracks}} tracks
+    </p>
+
+    <table>
+        <tr>
+            <th>Track Id</th>
+            <th>Description</th>
+            <th>Source</th>
+            <th>Points</th>
+            <th>Segments</th>
+            <th>Start Time<br/>(GMT)</th>
+            <th>Finish Time<br/>(GMT)</th>
+            <th>Duration (Hours)</th>
+            <th>Region</th>
+            <th>Level</th>
+            <th>Length (Miles)</th>
+            <th>Max Speed (mph)</th>
+            <th>AvgSpeed (mph)</th>
+            <th>Up (feet)</th>
+            <th>Down (feet)</th>
+            <th>Total Ascent (feet)</th>
+            <th>Type</th>
+            <th>View</th>
+        </tr>
+        {{range .Tracks}}
+        <tr class="{{if eq (mod .SeqNum 2) 0}}even{{else}}odd{{end}}">
+            <td style="text-align:right">{{.ID}}</td>
+            <td>{{.Description}}</td>
+            <td>{{.Source}}</td>
+            <td style="text-align:right">{{.Points}}</td>
+            <td style="text-align:right">{{.Segments}}</td>
+            <td>{{.StartTime}}</td>
+            <td>{{.FinishTime}}</td>
+            <td style="text-align:right">{{printf "%.2f" .TotalTime}}</td>
+            <td>{{.Region}}</td>
+            <td style="text-align:right">{{.Level}}</td>
+            <td style="text-align:right">{{printf "%.2f" .LengthMiles}}</td>
+            <td style="text-align:right">{{if .MaxSpeed.Valid}}{{printf "%.2f" .MaxSpeed.Float64}}{{else}}N/A{{end}}
+            </td>
+            <td style="text-align:right">{{if .AvgSpeed.Valid}}{{printf "%.2f" .AvgSpeed.Float64}}{{else}}N/A{{end}}
+            </td>
+            <td style="text-align:right">{{printf "%.2f" .Up}}</td>
+            <td style="text-align:right">{{printf "%.2f" .Down}}</td>
+            <td style="text-align:right">{{printf "%.2f" .TotalAscent}}</td>
+            <td style="text-align:right">{{.CategoryID}}</td>
+            <td><a href="/view/{{.ID}}">View</a></td>
+        </tr>
+        {{end}}
+    </table>
+
+    <div class="pagination">
+        <!-- Previous button -->
+        {{if gt .CurrentPage 1}}
+        <a href="?page={{sub .CurrentPage 1}}&pageSize={{.PageSize}}">Previous</a>
+        {{else}}
+        <span class="disabled">Previous</span>
+        {{end}}
+
+        <!-- Page numbers -->
+        {{$cp := .CurrentPage}}
+        {{$ps := .PageSize}}
+        {{$start := 1}}
+        {{$end := .TotalPages}}
+
+        {{if gt .TotalPages 10}}
+        {{$start = max 1 (sub $cp 4)}}
+        {{$end = min .TotalPages (add $cp 5)}}
+        {{if le $start 3}}
+        {{$start = 1}}
+        {{$end = min .TotalPages 10}}
+        {{end}}
+        {{if ge $end (sub .TotalPages 2)}}
+        {{$start = max 1 (sub .TotalPages 9)}}
+        {{$end = .TotalPages}}
+        {{end}}
+        {{end}}
+
+        {{if gt $start 1}}
+        <a href="?page=1&pageSize={{$ps}}">1</a>
+        {{if gt $start 2}}<span>...</span>{{end}}
+        {{end}}
+
+        {{range $page := intRange $start $end}}
+        {{if eq $page $cp}}
+        <span class="active">{{$page}}</span>
+        {{else}}
+        <a href="?page={{$page}}&pageSize={{$ps}}">{{$page}}</a>
+        {{end}}
+        {{end}}
+
+        {{if lt $end .TotalPages}}
+        {{if lt $end (sub .TotalPages 1)}}<span>...</span>{{end}}
+        <a href="?page={{.TotalPages}}&pageSize={{$ps}}">{{.TotalPages}}</a>
+        {{end}}
+
+        <!-- Next button -->
+        {{if lt .CurrentPage .TotalPages}}
+        <a href="?page={{add .CurrentPage 1}}&pageSize={{.PageSize}}">Next</a>
+        {{else}}
+        <span class="disabled">Next</span>
+        {{end}}
+    </div>
+    {{else}}
+    <p>No tracks available.</p>
+    {{end}}
+</body>
+
+</html>
