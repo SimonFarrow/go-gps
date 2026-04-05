@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"github.com/go-sql-driver/mysql"
 	"html/template"
 	"io"
 	"log"
@@ -12,7 +13,6 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
-	"github.com/go-sql-driver/mysql"
 )
 
 // ====================================================================================================================
@@ -46,10 +46,13 @@ type Page struct {
 	PageSize    int
 	TotalTracks int
 	TotalPages  int
+	OrderBy     string
+	Order       string
 }
 
 // ====================================================================================================================
 // Globals
+// map of functions that can be used in the templates, and the templates themselves.
 var templates = template.Must(template.New("").Funcs(template.FuncMap{
 	"add": func(a, b int) int { return a + b },
 	"sub": func(a, b int) int { return a - b },
@@ -67,6 +70,7 @@ var templates = template.Must(template.New("").Funcs(template.FuncMap{
 		}
 		return b
 	},
+	// also remove suffix
 	"basename": func(path string) string {
 		base := filepath.Base(path)
 		if i := strings.LastIndexByte(base, '.'); i >= 0 {
@@ -162,6 +166,8 @@ func summaryHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		PageSize:    pageSize,
 		TotalTracks: totalTracks,
 		TotalPages:  totalPages,
+		OrderBy:     orderBy,
+		Order:       order,
 	}
 
 	renderTemplate(w, "summary", page)

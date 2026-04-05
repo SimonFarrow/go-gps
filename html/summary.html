@@ -31,23 +31,23 @@
 
     <table>
         <tr>
-            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=id&amp;order=ASC">Track Id</a></th>
-            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=tracks.description&amp;order=ASC">Description</a></th>
-            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=source&amp;order=ASC">Source</a></th>
-            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=points&amp;order=ASC">Points</a></th>
-            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=segments&amp;order=ASC">Segments</a></th>
-            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=start_time&amp;order=ASC">Start Time<br/>(GMT)</a></th>
-            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=finish_time&amp;order=ASC">Finish Time<br/>(GMT)</a></th>
-            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=total_time&amp;order=ASC">Duration<br/>(Hours)</a></th>
-            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=TrackRegion.description&amp;order=ASC">Region</a></th>
-            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=level&amp;order=ASC">Level</a></th>
-            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=length_miles&amp;order=ASC">Length<br/>(Miles)</a></th>
-            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=max_speed&amp;order=ASC">Max Speed<br/>(mph)</a></th>
-            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=avg_speed&amp;order=ASC">AvgSpeed<br/>(mph)</a></th>
-            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=up&amp;order=ASC">Up<br/>(feet)</a></th>
-            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=down&amp;order=ASC">Down<br/>(feet)</a></th>
-            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=total_ascent&amp;order=ASC">Total Ascent<br/>(feet)</a></th>
-            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=category_id&amp;order=ASC">Type</a></th>
+            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=id&amp;order=ASC">Track Id{{if eq .OrderBy "id"}}{{if eq .Order "ASC"}}▲{{else}}▼{{end}}{{end}}</a></th>
+            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=tracks.description&amp;order=ASC">Description{{if eq .OrderBy "tracks.description"}}{{if eq .Order "ASC"}}▲{{else}}▼{{end}}{{end}}</a></th>
+            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=source&amp;order=ASC">Source{{if eq .OrderBy "source"}}{{if eq .Order "ASC"}}▲{{else}}▼{{end}}{{end}}</a></th>
+            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=points&amp;order=ASC">Points{{if eq .OrderBy "points"}}{{if eq .Order "ASC"}}▲{{else}}▼{{end}}{{end}}</a></th>
+            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=segments&amp;order=ASC">Segments{{if eq .OrderBy "segments"}}{{if eq .Order "ASC"}}▲{{else}}▼{{end}}{{end}}</a></th>
+            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=start_time&amp;order=ASC">Start Time<br/>(GMT){{if eq .OrderBy "start_time"}}{{if eq .Order "ASC"}}▲{{else}}▼{{end}}{{end}}</a></th>
+            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=finish_time&amp;order=ASC">Finish Time<br/>(GMT){{if eq .OrderBy "finish_time"}}{{if eq .Order "ASC"}}▲{{else}}▼{{end}}{{end}}</a></th>
+            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=total_time&amp;order=ASC">Duration<br/>(Hours){{if eq .OrderBy "total_time"}}{{if eq .Order "ASC"}}▲{{else}}▼{{end}}{{end}}</a></th>
+            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=TrackRegion.description&amp;order=ASC">Region{{if eq .OrderBy "TrackRegion.description"}}{{if eq .Order "ASC"}}▲{{else}}▼{{end}}{{end}}</a></th>
+            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=level&amp;order=ASC">Level{{if eq .OrderBy "level"}} {{if eq .Order "ASC"}}▲{{else}}▼{{end}}{{end}}</a></th>
+            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=length_miles&amp;order=ASC">Length<br/>(Miles){{if eq .OrderBy "length_miles"}}{{if eq .Order "ASC"}}▲{{else}}▼{{end}}{{end}}</a></th>
+            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=max_speed&amp;order=ASC">Max Speed<br/>(mph){{if eq .OrderBy "max_speed"}}{{if eq .Order "ASC"}}▲{{else}}▼{{end}}{{end}}</a></th>
+            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=avg_speed&amp;order=ASC">AvgSpeed<br/>(mph){{if eq .OrderBy "avg_speed"}}{{if eq .Order "ASC"}}▲{{else}}▼{{end}}{{end}}</a></th>
+            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=up&amp;order=ASC">Up<br/>(feet){{if eq .OrderBy "up"}}{{if eq .Order "ASC"}}▲{{else}}▼{{end}}{{end}}</a></th>
+            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=down&amp;order=ASC">Down<br/>(feet){{if eq .OrderBy "down"}}{{if eq .Order "ASC"}}▲{{else}}▼{{end}}{{end}}</a></th>
+            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=total_ascent&amp;order=ASC">Total Ascent<br/>(feet){{if eq .OrderBy "total_ascent"}}{{if eq .Order "ASC"}}▲{{else}}▼{{end}}{{end}}</a></th>
+            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=category_id&amp;order=ASC">Type{{if eq .OrderBy "category_id"}}{{if eq .Order "ASC"}}▲{{else}}▼{{end}}{{end}}</a></th>
             <th>View</th>
         </tr>
         {{range .Tracks}}
