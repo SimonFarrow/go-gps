@@ -4,13 +4,15 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"github.com/go-sql-driver/mysql"
 	"html/template"
 	"io"
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"runtime"
+	"strings"
+	"github.com/go-sql-driver/mysql"
 )
 
 // ====================================================================================================================
@@ -65,6 +67,13 @@ var templates = template.Must(template.New("").Funcs(template.FuncMap{
 		}
 		return b
 	},
+	"basename": func(path string) string {
+		base := filepath.Base(path)
+		if i := strings.LastIndexByte(base, '.'); i >= 0 {
+			return base[:i]
+		}
+		return base
+	},
 	"intRange": func(start, end int) []int {
 		var result []int
 		for i := start; i <= end; i++ {
@@ -83,7 +92,23 @@ func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
 }
 
 // ====================================================================================================================
-func summaryHandler(w http.ResponseWriter, r *http.Request, allTracks []Track) {
+func summaryHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+	orderBy := r.URL.Query().Get("order_by")
+	if orderBy == "" {
+		orderBy = "start_time"
+	}
+
+	order := r.URL.Query().Get("order")
+	if order == "" {
+		order = "desc"
+	} else if strings.ToLower(order) != "desc" && strings.ToLower(order) != "asc" {
+		http.Error(w, "Invalid order parameter. Must be 'asc' or 'desc'.", http.StatusBadRequest)
+	}
+
+	qt := r.URL.Query().Get("qt")
+
+	allTracks := readTracks(db, orderBy, order, qt)
+
 	// Parse query parameters
 	pageStr := r.URL.Query().Get("page")
 	pageSizeStr := r.URL.Query().Get("pageSize")
@@ -150,17 +175,46 @@ func parsePositiveInt(s string) (int, error) {
 }
 
 // ====================================================================================================================
-func readTracks(db *sql.DB) []Track {
-	rows, err := db.Query("SELECT ID, Source, tracks.Description as Description, Points, Segments, start_time, finish_time, total_time, TrackRegion.description as region, level, length_miles, max_speed, avg_speed, up, down, total_ascent, tracks.category_id FROM tracks, track_legs, TrackRegion WHERE tracks.ID = track_legs.Track_ID and tracks.ID = TrackRegion.Track_ID ORDER BY tracks.ID DESC")
+func readTracks(db *sql.DB, orderBy string, order string, qt string) []Track {
+	query := `SELECT ID, Source, tracks.Description as Description, Points, Segments, start_time, finish_time, total_time, TrackRegion.description as region, level, length_miles, max_speed, avg_speed, up, down, total_ascent, tracks.category_id 
+		FROM tracks, track_legs, TrackRegion 
+		WHERE tracks.ID = track_legs.Track_ID and tracks.ID = TrackRegion.Track_ID 
+		ORDER BY ` + orderBy + ` ` + order
+
+	stmt, err := db.Prepare(query)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query()
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer rows.Close()
 
-	track := Track{}
 	tracks := []Track{}
 	for rows.Next() {
-		err = rows.Scan(&track.ID, &track.Source, &track.Description, &track.Points, &track.Segments, &track.StartTime, &track.FinishTime, &track.TotalTime, &track.Region, &track.Level, &track.LengthMiles, &track.MaxSpeed, &track.AvgSpeed, &track.Up, &track.Down, &track.TotalAscent, &track.CategoryID)
+		track := Track{}
+		err = rows.Scan(
+			&track.ID,
+			&track.Source,
+			&track.Description,
+			&track.Points,
+			&track.Segments,
+			&track.StartTime,
+			&track.FinishTime,
+			&track.TotalTime,
+			&track.Region,
+			&track.Level,
+			&track.LengthMiles,
+			&track.MaxSpeed,
+			&track.AvgSpeed,
+			&track.Up,
+			&track.Down,
+			&track.TotalAscent,
+			&track.CategoryID,
+		)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -175,7 +229,7 @@ func openDatabase(configMap map[string]any) *sql.DB {
 		User:                 configMap["user"].(string),
 		Passwd:               configMap["password"].(string),
 		Net:                  "tcp",
-		Addr:                 configMap["host"].(string) + ":3306",
+		Addr:                 configMap["host"].(string) + ":3306", // port is hardcoded to 3306 for mysql , but could be made configurable if needed
 		DBName:               configMap["schema"].(string),
 		AllowNativePasswords: true, // AllowNativePasswords is required when the MySQL user account has a password that is stored using the native password hashing method.
 	}
@@ -242,10 +296,8 @@ func main() {
 	mux := http.NewServeMux()
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))
 
-	tracks := readTracks(db)
-
 	mux.HandleFunc("/summary/", func(w http.ResponseWriter, r *http.Request) {
-		summaryHandler(w, r, tracks)
+		summaryHandler(w, r, db)
 	})
 	log.Fatal(http.ListenAndServe(":8080", mux))
 }

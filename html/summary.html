@@ -31,23 +31,23 @@
 
     <table>
         <tr>
-            <th>Track Id</th>
-            <th>Description</th>
-            <th>Source</th>
-            <th>Points</th>
-            <th>Segments</th>
-            <th>Start Time<br/>(GMT)</th>
-            <th>Finish Time<br/>(GMT)</th>
-            <th>Duration (Hours)</th>
-            <th>Region</th>
-            <th>Level</th>
-            <th>Length (Miles)</th>
-            <th>Max Speed (mph)</th>
-            <th>AvgSpeed (mph)</th>
-            <th>Up (feet)</th>
-            <th>Down (feet)</th>
-            <th>Total Ascent (feet)</th>
-            <th>Type</th>
+            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=id&amp;order=ASC">Track Id</a></th>
+            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=tracks.description&amp;order=ASC">Description</a></th>
+            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=source&amp;order=ASC">Source</a></th>
+            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=points&amp;order=ASC">Points</a></th>
+            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=segments&amp;order=ASC">Segments</a></th>
+            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=start_time&amp;order=ASC">Start Time<br/>(GMT)</a></th>
+            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=finish_time&amp;order=ASC">Finish Time<br/>(GMT)</a></th>
+            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=total_time&amp;order=ASC">Duration<br/>(Hours)</a></th>
+            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=TrackRegion.description&amp;order=ASC">Region</a></th>
+            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=level&amp;order=ASC">Level</a></th>
+            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=length_miles&amp;order=ASC">Length<br/>(Miles)</a></th>
+            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=max_speed&amp;order=ASC">Max Speed<br/>(mph)</a></th>
+            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=avg_speed&amp;order=ASC">AvgSpeed<br/>(mph)</a></th>
+            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=up&amp;order=ASC">Up<br/>(feet)</a></th>
+            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=down&amp;order=ASC">Down<br/>(feet)</a></th>
+            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=total_ascent&amp;order=ASC">Total Ascent<br/>(feet)</a></th>
+            <th><a href="./?pageSize={{.PageSize}}&amp;Page={{.CurrentPage}}&amp;order_by=category_id&amp;order=ASC">Type</a></th>
             <th>View</th>
         </tr>
         {{range .Tracks}}
@@ -71,7 +71,7 @@
             <td style="text-align:right">{{printf "%.2f" .Down}}</td>
             <td style="text-align:right">{{printf "%.2f" .TotalAscent}}</td>
             <td style="text-align:right">{{.CategoryID}}</td>
-            <td><a href="/view/{{.ID}}">View</a></td>
+            <td><a href="https://farrowburgess.noip.me/cgi-bin/gps/view.pl?file={{basename .Source}}">View</a></td>
         </tr>
         {{end}}
     </table>
