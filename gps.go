@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"github.com/go-sql-driver/mysql"
 	"html/template"
 	"io"
 	"log"
@@ -13,6 +12,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"github.com/go-sql-driver/mysql"
 )
 
 // ====================================================================================================================
@@ -70,7 +70,6 @@ var templates = template.Must(template.New("").Funcs(template.FuncMap{
 		}
 		return b
 	},
-	// also remove suffix
 	"basename": func(path string) string {
 		base := filepath.Base(path)
 		if i := strings.LastIndexByte(base, '.'); i >= 0 {
@@ -84,6 +83,20 @@ var templates = template.Must(template.New("").Funcs(template.FuncMap{
 			result = append(result, i)
 		}
 		return result
+	},
+	"headerLink": func(label, field string, currentPage, pageSize int, orderBy, order string) template.HTML {
+		nextOrder := "ASC"
+		arrow := ""
+		if orderBy == field {
+			if strings.ToUpper(order) == "ASC" {
+				nextOrder = "DESC"
+				arrow = "▼"
+			} else {
+				arrow = "▲"
+			}
+		}
+		url := fmt.Sprintf("./?pageSize=%d&amp;Page=%d&amp;order_by=%s&amp;order=%s", pageSize, currentPage, field, nextOrder)
+		return template.HTML(fmt.Sprintf(`<a href="%s">%s%s</a>`, url, label, arrow))
 	},
 }).ParseFiles("html/summary.html"))
 
