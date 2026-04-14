@@ -31,23 +31,23 @@
 
     <table>
         <tr>
-            <th>{{headerLink "Track Id" "id" .CurrentPage .PageSize .OrderBy .Order}}</th>
-            <th>{{headerLink "Description" "tracks.description" .CurrentPage .PageSize .OrderBy .Order}}</th>
-            <th>{{headerLink "Source" "source" .CurrentPage .PageSize .OrderBy .Order}}</th>
-            <th>{{headerLink "Points" "points" .CurrentPage .PageSize .OrderBy .Order}}</th>
-            <th>{{headerLink "Segments" "segments" .CurrentPage .PageSize .OrderBy .Order}}</th>
-            <th>{{headerLink "Start Time\n(GMT)" "start_time" .CurrentPage .PageSize .OrderBy .Order}}</th>
-            <th>{{headerLink "Finish Time\n(GMT)" "finish_time" .CurrentPage .PageSize .OrderBy .Order}}</th>
-            <th>{{headerLink "Duration\n(Hours)" "total_time" .CurrentPage .PageSize .OrderBy .Order}}</th>
-            <th>{{headerLink "Region" "TrackRegion.description" .CurrentPage .PageSize .OrderBy .Order}}</th>
-            <th>{{headerLink "Level" "level" .CurrentPage .PageSize .OrderBy .Order}}</th>
-            <th>{{headerLink "Length\n(Miles)" "length_miles" .CurrentPage .PageSize .OrderBy .Order}}</th>
-            <th>{{headerLink "Max Speed\n(mph)" "max_speed" .CurrentPage .PageSize .OrderBy .Order}}</th>
-            <th>{{headerLink "AvgSpeed\n(mph)" "avg_speed" .CurrentPage .PageSize .OrderBy .Order}}</th>
-            <th>{{headerLink "Up\n(feet)" "up" .CurrentPage .PageSize .OrderBy .Order}}</th>
-            <th>{{headerLink "Down\n(feet)" "down" .CurrentPage .PageSize .OrderBy .Order}}</th>
-            <th>{{headerLink "Total Ascent\n(feet)" "total_ascent" .CurrentPage .PageSize .OrderBy .Order}}</th>
-            <th>{{headerLink "Type" "category_id" .CurrentPage .PageSize .OrderBy .Order}}</th>
+            <th>{{headerLink "Track Id" "id" .}}</th>
+            <th>{{headerLink "Description" "tracks.description" .}}</th>
+            <th>{{headerLink "Source" "source" .}}</th>
+            <th>{{headerLink "Points" "points" .}}</th>
+            <th>{{headerLink "Segments" "segments" .}}</th>
+            <th>{{headerLink "Start Time\n(GMT)" "start_time" .}}</th>
+            <th>{{headerLink "Finish Time\n(GMT)" "finish_time" .}}</th>
+            <th>{{headerLink "Duration\n(Hours)" "total_time" .}}</th>
+            <th>{{headerLink "Region" "TrackRegion.description" .}}</th>
+            <th>{{headerLink "Level" "level" .}}</th>
+            <th>{{headerLink "Length\n(Miles)" "length_miles" .}}</th>
+            <th>{{headerLink "Max Speed\n(mph)" "max_speed" .}}</th>
+            <th>{{headerLink "AvgSpeed\n(mph)" "avg_speed" .}}</th>
+            <th>{{headerLink "Up\n(feet)" "up" .}}</th>
+            <th>{{headerLink "Down\n(feet)" "down" .}}</th>
+            <th>{{headerLink "Total Ascent\n(feet)" "total_ascent" .}}</th>
+            <th>{{headerLink "Type" "category_id" .}}</th>
             <th>View</th>
         </tr>
         {{range .Tracks}}
