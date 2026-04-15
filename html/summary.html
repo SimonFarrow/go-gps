@@ -60,8 +60,8 @@
             <td>{{.StartTime}}</td>
             <td>{{.FinishTime}}</td>
             <td style="text-align:right">{{printf "%.2f" .Duration}}</td>
-            <td>{{.Region}}</td>
-            <td style="text-align:right">{{.Level}}</td>
+            <td>{{if .Region.Valid}}{{.Region.String}}{{else}}N/A{{end}}</td>
+            <td style="text-align:right">{{if .Level.Valid}}{{.Level.Int32}}{{else}}N/A{{end}}</td>
             <td style="text-align:right">{{printf "%.2f" .LengthMiles}}</td>
             <td style="text-align:right">{{if .MaxSpeed.Valid}}{{printf "%.2f" .MaxSpeed.Float64}}{{else}}N/A{{end}}
             </td>

@@ -1,5 +1,5 @@
 [InternetShortcut]
-URL=http://localhost:8080/summary?page=1&pageSize=16&qt=year&year=2022&type=Walk
+URL=http://localhost:8080/summary?page=1&pageSize=16&qt=region&region=Howgills
 IDList=
 HotKey=0
 [{000214A0-0000-0000-C000-000000000046}]
