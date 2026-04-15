@@ -254,8 +254,27 @@ func parsePositiveInt(s string) (int, error) {
 // ====================================================================================================================
 func readTracks(db *sql.DB, orderBy string, order string, whereClause string) []Track {
 
-	query := `SELECT track_id, source, description, points, segments, start_time, finish_time, duration, region, level, length_miles, max_speed, avg_speed, up, down, total_ascent, type 
-		FROM Summary`
+	fields := []string{
+		"track_id",
+		"source",
+		"description",
+		"points",
+		"segments",
+		"start_time",
+		"finish_time",
+		"duration",
+		"region",
+		"level",
+		"length_miles",
+		"max_speed",
+		"avg_speed",
+		"up",
+		"down",
+		"total_ascent",
+		"type"}
+
+	fieldList := strings.Join(fields, ", ")
+	query := "SELECT " + fieldList + " FROM Summary"
 
 	if whereClause != "" {
 		query += " WHERE " + whereClause
