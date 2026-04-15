@@ -31,15 +31,15 @@
 
     <table>
         <tr>
-            <th>{{headerLink "Track Id" "id" .}}</th>
-            <th>{{headerLink "Description" "tracks.description" .}}</th>
+            <th>{{headerLink "Track Id" "track_id" .}}</th>
+            <th>{{headerLink "Description" "description" .}}</th>
             <th>{{headerLink "Source" "source" .}}</th>
             <th>{{headerLink "Points" "points" .}}</th>
             <th>{{headerLink "Segments" "segments" .}}</th>
             <th>{{headerLink "Start Time\n(GMT)" "start_time" .}}</th>
             <th>{{headerLink "Finish Time\n(GMT)" "finish_time" .}}</th>
             <th>{{headerLink "Duration\n(Hours)" "total_time" .}}</th>
-            <th>{{headerLink "Region" "TrackRegion.description" .}}</th>
+            <th>{{headerLink "Region" "region" .}}</th>
             <th>{{headerLink "Level" "level" .}}</th>
             <th>{{headerLink "Length\n(Miles)" "length_miles" .}}</th>
             <th>{{headerLink "Max Speed\n(mph)" "max_speed" .}}</th>
@@ -47,7 +47,7 @@
             <th>{{headerLink "Up\n(feet)" "up" .}}</th>
             <th>{{headerLink "Down\n(feet)" "down" .}}</th>
             <th>{{headerLink "Total Ascent\n(feet)" "total_ascent" .}}</th>
-            <th>{{headerLink "Type" "category_id" .}}</th>
+            <th>{{headerLink "Type" "type" .}}</th>
             <th>View</th>
         </tr>
         {{range .Tracks}}
@@ -70,7 +70,7 @@
             <td style="text-align:right">{{printf "%.2f" .Up}}</td>
             <td style="text-align:right">{{printf "%.2f" .Down}}</td>
             <td style="text-align:right">{{printf "%.2f" .TotalAscent}}</td>
-            <td style="text-align:right">{{.CategoryID}}</td>
+            <td style="text-align:right">{{.Type}}</td>
             <td><a href="https://farrowburgess.noip.me/cgi-bin/gps/view.pl?file={{basename .Source}}">View</a></td>
         </tr>
         {{end}}

@@ -27,16 +27,16 @@ type Track struct {
 	Segments    int             `db:"segments"`
 	StartTime   string          `db:"start_time"`
 	FinishTime  string          `db:"finish_time"`
-	TotalTime   float32         `db:"total_time"`
-	Region      string          `db:"region"`
-	Level       int             `db:"level"`
+	TotalTime   float32         `db:"duration"`
+	Region      sql.NullString  `db:"region"`
+	Level       sql.NullInt32   `db:"level"`
 	LengthMiles float32         `db:"length_miles"`
 	MaxSpeed    sql.NullFloat64 `db:"max_speed"`
 	AvgSpeed    sql.NullFloat64 `db:"avg_speed"`
 	Up          float32         `db:"up"`
 	Down        float32         `db:"down"`
 	TotalAscent float32         `db:"total_ascent"`
-	CategoryID  int             `db:"category_id"`
+	Type        string          `db:"type"`
 	SeqNum      int
 }
 
@@ -49,6 +49,7 @@ type Page struct {
 	TotalPages  int
 	OrderBy     string
 	Order       string
+	QueryType   string
 }
 
 // ====================================================================================================================
@@ -125,7 +126,25 @@ func summaryHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 	qt := r.URL.Query().Get("qt")
 
-	allTracks := readTracks(db, orderBy, order, qt)
+	var whereClause = ""
+	switch qt {
+	case "unallocated":
+		// where region is null and type = ?
+	case "regionandtype":
+		// where region=? and type=?
+	case "region":
+		// where region=?
+	case "type":
+		// where type=?
+	case "year":
+		// where year(start_time)=? and type=?
+	case "trackidin":
+		// where trackid in ()
+	case "date_range":
+	case "distance_range":
+	default:
+	}
+	allTracks := readTracks(db, orderBy, order, whereClause)
 
 	// Parse query parameters
 	pageStr := r.URL.Query().Get("page")
@@ -182,6 +201,7 @@ func summaryHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		TotalPages:  totalPages,
 		OrderBy:     orderBy,
 		Order:       order,
+		QueryType:   qt,
 	}
 
 	renderTemplate(w, "summary", page)
@@ -195,10 +215,10 @@ func parsePositiveInt(s string) (int, error) {
 }
 
 // ====================================================================================================================
-func readTracks(db *sql.DB, orderBy string, order string, qt string) []Track {
-	query := `SELECT ID, Source, tracks.Description as Description, Points, Segments, start_time, finish_time, total_time, TrackRegion.description as region, level, length_miles, max_speed, avg_speed, up, down, total_ascent, tracks.category_id 
-		FROM tracks, track_legs, TrackRegion 
-		WHERE tracks.ID = track_legs.Track_ID and tracks.ID = TrackRegion.Track_ID 
+func readTracks(db *sql.DB, orderBy string, order string, whereClause string) []Track {
+
+	query := `SELECT track_id, source, description, points, segments, start_time, finish_time, duration, region, level, length_miles, max_speed, avg_speed, up, down, total_ascent, type 
+		FROM Summary
 		ORDER BY ` + orderBy + ` ` + order
 
 	stmt, err := db.Prepare(query)
@@ -233,7 +253,7 @@ func readTracks(db *sql.DB, orderBy string, order string, qt string) []Track {
 			&track.Up,
 			&track.Down,
 			&track.TotalAscent,
-			&track.CategoryID,
+			&track.Type,
 		)
 		if err != nil {
 			log.Fatal(err)
