@@ -27,7 +27,7 @@ type Track struct {
 	Segments    int             `db:"segments"`
 	StartTime   string          `db:"start_time"`
 	FinishTime  string          `db:"finish_time"`
-	TotalTime   float32         `db:"duration"`
+	Duration    float32         `db:"duration"`
 	Region      sql.NullString  `db:"region"`
 	Level       sql.NullInt32   `db:"level"`
 	LengthMiles float32         `db:"length_miles"`
@@ -126,22 +126,59 @@ func summaryHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 	qt := r.URL.Query().Get("qt")
 
-	var whereClause = ""
+	var whereClause string
+	var desc string
 	switch qt {
 	case "unallocated":
-		// where region is null and type = ?
+		typ := r.URL.Query().Get("type")
+		whereClause = "region is null and type = '" + typ + "'"
+		desc = "Not allocated to a region and type = " + typ
 	case "regionandtype":
-		// where region=? and type=?
+		region := r.URL.Query().Get("region")
+		typ := r.URL.Query().Get("type")
+		whereClause = "region = '" + region + "' and type = '" + typ + "'"
+		desc = "Region = '" + region + "' and with type '" + typ + "'"
 	case "region":
-		// where region=?
+		region := r.URL.Query().Get("region")
+		whereClause = "region = '" + region + "'"
+		desc = "Region = '" + region + "'"
 	case "type":
-		// where type=?
+		typ := r.URL.Query().Get("type")
+		whereClause = "type = '" + typ + "'"
+		desc = "Type '" + typ + "'"
 	case "year":
-		// where year(start_time)=? and type=?
+		year := r.URL.Query().Get("year")
+		typ := r.URL.Query().Get("type")
+		whereClause = "year(start_time) = " + year + " and type = '" + typ + "'"
+		desc = "Year " + year + " with type '" + typ + "'"
 	case "trackidin":
-		// where trackid in ()
+		ids := r.URL.Query().Get("ids")
+		whereClause = "trackid in (" + ids + ")"
+		desc = "Tracks with IDs in " + ids
 	case "date_range":
+		start_date := r.URL.Query().Get("start_date")
+		end_date := r.URL.Query().Get("end_date")
+		whereClause = "start_time >= '" + start_date + "' AND start_time <= '" + end_date + "'"
+		desc = "Tracks between " + start_date + " and " + end_date
 	case "distance_range":
+		shortest_distance := r.URL.Query().Get("shortest_distance")
+		longest_distance := r.URL.Query().Get("longest_distance")
+		typ := r.URL.Query().Get("type")
+		if longest_distance == "" {
+			whereClause = "length_miles >= (" + shortest_distance + " + 0.0 )"
+			desc = "Tracks with length >= " + shortest_distance + " miles"
+		} else if shortest_distance == "" {
+			whereClause = "length_miles <= (" + longest_distance + " + 0.0 )"
+			desc = "Tracks with length <= " + longest_distance + " miles"
+		} else {
+			whereClause = "length_miles >= (" + shortest_distance + " + 0.0 ) AND length_miles <= (" + longest_distance + " + 0.0 )"
+			desc = "Tracks between " + shortest_distance + " and " + longest_distance + " miles"
+		}
+		if typ != "" {
+			whereClause += " AND type = '" + typ + "'"
+			desc += " with type '" + typ + "'"
+		}
+
 	default:
 	}
 	allTracks := readTracks(db, orderBy, order, whereClause)
@@ -218,8 +255,12 @@ func parsePositiveInt(s string) (int, error) {
 func readTracks(db *sql.DB, orderBy string, order string, whereClause string) []Track {
 
 	query := `SELECT track_id, source, description, points, segments, start_time, finish_time, duration, region, level, length_miles, max_speed, avg_speed, up, down, total_ascent, type 
-		FROM Summary
-		ORDER BY ` + orderBy + ` ` + order
+		FROM Summary`
+
+	if whereClause != "" {
+		query += " WHERE " + whereClause
+	}
+	query += " ORDER BY " + orderBy + " " + order
 
 	stmt, err := db.Prepare(query)
 	if err != nil {
@@ -244,7 +285,7 @@ func readTracks(db *sql.DB, orderBy string, order string, whereClause string) []
 			&track.Segments,
 			&track.StartTime,
 			&track.FinishTime,
-			&track.TotalTime,
+			&track.Duration,
 			&track.Region,
 			&track.Level,
 			&track.LengthMiles,

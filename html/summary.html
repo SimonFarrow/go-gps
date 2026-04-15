@@ -38,7 +38,7 @@
             <th>{{headerLink "Segments" "segments" .}}</th>
             <th>{{headerLink "Start Time\n(GMT)" "start_time" .}}</th>
             <th>{{headerLink "Finish Time\n(GMT)" "finish_time" .}}</th>
-            <th>{{headerLink "Duration\n(Hours)" "total_time" .}}</th>
+            <th>{{headerLink "Duration\n(Hours)" "duration" .}}</th>
             <th>{{headerLink "Region" "region" .}}</th>
             <th>{{headerLink "Level" "level" .}}</th>
             <th>{{headerLink "Length\n(Miles)" "length_miles" .}}</th>
@@ -59,7 +59,7 @@
             <td style="text-align:right">{{.Segments}}</td>
             <td>{{.StartTime}}</td>
             <td>{{.FinishTime}}</td>
-            <td style="text-align:right">{{printf "%.2f" .TotalTime}}</td>
+            <td style="text-align:right">{{printf "%.2f" .Duration}}</td>
             <td>{{.Region}}</td>
             <td style="text-align:right">{{.Level}}</td>
             <td style="text-align:right">{{printf "%.2f" .LengthMiles}}</td>
