@@ -153,7 +153,7 @@ func summaryHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		desc = "Year " + year + " with type '" + typ + "'"
 	case "trackidin":
 		ids := r.URL.Query().Get("ids")
-		whereClause = "trackid in (" + ids + ")"
+		whereClause = "track_id in (" + ids + ")"
 		desc = "Tracks with IDs in " + ids
 	case "date_range":
 		start_date := r.URL.Query().Get("start_date")
