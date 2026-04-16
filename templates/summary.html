@@ -3,7 +3,7 @@
 
 <head>
     <title>{{.Title}}</title>
-    <link rel="stylesheet" type="text/css" href="/static/gps.css" />
+    <link rel="stylesheet" type="text/css" href="/html/gps.css" />
 </head>
 
 <body>
@@ -30,6 +30,27 @@
     </p>
 
     <table>
+        <colgroup>
+            <col style="visibility: visible"/>
+            <col style="visibility: visible"/>
+            <col style="visibility: visible"/>
+            <col style="visibility: visible"/>
+            <col style="visibility: visible"/>
+            <col style="visibility: visible"/>
+            <col style="visibility: visible"/>
+            <col style="visibility: visible"/>
+            <col style="{{columnVisibility .DropList `Region` }}"/>
+            <col style="{{columnVisibility .DropList `Level` }}"/>
+            <col style="visibility: visible"/>
+            <col style="visibility: visible"/>
+            <col style="visibility: visible"/>
+            <col style="visibility: visible"/>
+            <col style="visibility: visible"/>
+            <col style="visibility: visible"/>
+            <col style="{{columnVisibility .DropList `Type` }}"/>
+            <col style="visibility: visible"/>
+        </colgroup>
+
         <tr>
             <th>{{headerLink "Track Id" "track_id" .}}</th>
             <th>{{headerLink "Description" "description" .}}</th>

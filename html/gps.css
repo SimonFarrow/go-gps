@@ -2,7 +2,7 @@ body {
 	font-family: Courier;
 	font-size: small;
 	margin: 20px;
-	background: url(/static/IMAG0501.jpg);
+	background: url(/html/IMAG0501.jpg);
 	background-position: center no-repeat;
 	background-size: cover;
 }

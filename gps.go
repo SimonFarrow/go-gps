@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"strings"
 
 	"github.com/go-sql-driver/mysql"
@@ -74,6 +75,7 @@ type Page struct {
 	Order           string
 	QueryType       string
 	QueryParameters string
+	DropList        []string
 }
 
 // Globals
@@ -132,6 +134,12 @@ var templates = template.Must(template.New("").Funcs(template.FuncMap{
 		}
 		return template.HTML(fmt.Sprintf(`<a href="%s">%s%s</a>`, url, label, arrow))
 	},
+	"columnVisibility": func(dropList []string, name string) template.CSS {
+		if slices.Contains(dropList, name) {
+			return template.CSS("visibility: collapse")
+		}
+		return template.CSS("visibility: visible")
+	},
 }).ParseFiles("templates/summary.html"))
 
 // renderTemplate
@@ -164,6 +172,7 @@ func summaryHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	var qp string
 	var desc string
 	var args []interface{}
+	var droplist []string
 
 	switch qt {
 	case UNALLOCATED:
@@ -172,6 +181,7 @@ func summaryHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		args = []interface{}{typ}
 		qp = TYPE_PARAM + "=" + typ
 		desc = "Not allocated to a region having type = " + typ
+		droplist = append(droplist, "Type", "Region", "Level")
 	case REGION_AND_TYPE:
 		region := r.URL.Query().Get(REGION_PARAM)
 		typ := r.URL.Query().Get(TYPE_PARAM)
@@ -179,18 +189,21 @@ func summaryHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		args = []interface{}{region, typ}
 		qp = REGION_PARAM + "=" + region + "&" + TYPE_PARAM + "=" + typ
 		desc = "Region = '" + region + "' having type = '" + typ + "'"
+		droplist = append(droplist, "Type", "Region")
 	case REGION:
 		region := r.URL.Query().Get(REGION_PARAM)
 		whereClause = "region = ?"
 		args = []interface{}{region}
 		qp = REGION_PARAM + "=" + region
 		desc = "Region = '" + region + "'"
+		droplist = append(droplist, "Region", "Level")
 	case TYPE:
 		typ := r.URL.Query().Get(TYPE_PARAM)
 		whereClause = "type = ?"
 		args = []interface{}{typ}
 		qp = TYPE_PARAM + "=" + typ
 		desc = "Type = '" + typ + "'"
+		droplist = append(droplist, "Type")
 	case YEAR:
 		year := r.URL.Query().Get(YEAR_PARAM)
 		typ := r.URL.Query().Get(TYPE_PARAM)
@@ -198,7 +211,9 @@ func summaryHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		args = []interface{}{year, typ}
 		qp = YEAR_PARAM + "=" + year + "&" + TYPE_PARAM + "=" + typ
 		desc = "Year " + year + " having type = '" + typ + "'"
+		droplist = append(droplist, "Type")
 	case TRACK_ID_IN:
+		// TODO this is not parameterised
 		ids := r.URL.Query().Get(TRACK_ID_IN_PARAM)
 		whereClause = "track_id in (" + ids + ")"
 		qp = TRACK_ID_IN_PARAM + "=" + ids
@@ -214,6 +229,7 @@ func summaryHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		shortest_distance := r.URL.Query().Get(DISTANCE_RANGE_MIN_PARAM)
 		longest_distance := r.URL.Query().Get(DISTANCE_RANGE_MAX_PARAM)
 		typ := r.URL.Query().Get(TYPE_PARAM)
+
 		if longest_distance == "" {
 			whereClause = "length_miles >= (? + 0.0)"
 			args = []interface{}{shortest_distance}
@@ -230,11 +246,13 @@ func summaryHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 			qp = DISTANCE_RANGE_MIN_PARAM + "=" + shortest_distance + "&" + DISTANCE_RANGE_MAX_PARAM + "=" + longest_distance
 			desc = "Tracks between " + shortest_distance + " and " + longest_distance + " miles"
 		}
+
 		if typ != "" {
 			whereClause += " AND type = ?"
 			args = append(args, typ)
 			qp += "&" + TYPE_PARAM + "=" + typ
 			desc += " having Type '" + typ + "'"
+			droplist = append(droplist, "Type")
 		}
 
 	default:
@@ -273,10 +291,7 @@ func summaryHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 	// Calculate offset
 	offset := (currentPage - 1) * pageSize
-	end := offset + pageSize
-	if end > totalTracks {
-		end = totalTracks
-	}
+	end := min(offset+pageSize, totalTracks)
 
 	// Get tracks for current page
 	var pageTracks []Track
@@ -298,6 +313,7 @@ func summaryHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		Order:           order,
 		QueryType:       qt,
 		QueryParameters: qp,
+		DropList:        droplist,
 	}
 
 	renderTemplate(w, "summary", page)
@@ -458,7 +474,7 @@ func main() {
 
 	fs := http.FileServer(http.Dir("./html"))
 	mux := http.NewServeMux()
-	mux.Handle("/static/", http.StripPrefix("/html/", fs))
+	mux.Handle("/html/", http.StripPrefix("/html/", fs))
 
 	mux.HandleFunc("/summary/", func(w http.ResponseWriter, r *http.Request) {
 		summaryHandler(w, r, db)
