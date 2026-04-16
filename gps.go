@@ -163,32 +163,39 @@ func summaryHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	var whereClause string
 	var qp string
 	var desc string
+	var args []interface{}
+
 	switch qt {
 	case UNALLOCATED:
 		typ := r.URL.Query().Get(TYPE_PARAM)
-		whereClause = "region is null and type = '" + typ + "'"
+		whereClause = "region is null and type = ?"
+		args = []interface{}{typ}
 		qp = TYPE_PARAM + "=" + typ
 		desc = "Not allocated to a region having type = " + typ
 	case REGION_AND_TYPE:
 		region := r.URL.Query().Get(REGION_PARAM)
 		typ := r.URL.Query().Get(TYPE_PARAM)
-		whereClause = "region = '" + region + "' and type = '" + typ + "'"
+		whereClause = "region = ? and type = ?"
+		args = []interface{}{region, typ}
 		qp = REGION_PARAM + "=" + region + "&" + TYPE_PARAM + "=" + typ
 		desc = "Region = '" + region + "' having type = '" + typ + "'"
 	case REGION:
 		region := r.URL.Query().Get(REGION_PARAM)
-		whereClause = "region = '" + region + "'"
+		whereClause = "region = ?"
+		args = []interface{}{region}
 		qp = REGION_PARAM + "=" + region
 		desc = "Region = '" + region + "'"
 	case TYPE:
 		typ := r.URL.Query().Get(TYPE_PARAM)
-		whereClause = "type = '" + typ + "'"
+		whereClause = "type = ?"
+		args = []interface{}{typ}
 		qp = TYPE_PARAM + "=" + typ
 		desc = "Type = '" + typ + "'"
 	case YEAR:
 		year := r.URL.Query().Get(YEAR_PARAM)
 		typ := r.URL.Query().Get(TYPE_PARAM)
-		whereClause = "year(start_time) = " + year + " and type = '" + typ + "'"
+		whereClause = "year(start_time) = ? and type = ?"
+		args = []interface{}{year, typ}
 		qp = YEAR_PARAM + "=" + year + "&" + TYPE_PARAM + "=" + typ
 		desc = "Year " + year + " having type = '" + typ + "'"
 	case TRACK_ID_IN:
@@ -199,7 +206,8 @@ func summaryHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	case DATE_RANGE:
 		start_date := r.URL.Query().Get(DATE_RANGE_START_PARAM)
 		end_date := r.URL.Query().Get(DATE_RANGE_END_PARAM)
-		whereClause = "start_time >= '" + start_date + "' AND start_time <= '" + end_date + "'"
+		whereClause = "start_time >= ? AND start_time <= ?"
+		args = []interface{}{start_date, end_date}
 		qp = DATE_RANGE_START_PARAM + "=" + start_date + "&" + DATE_RANGE_END_PARAM + "=" + end_date
 		desc = "Tracks between " + start_date + " and " + end_date
 	case DISTANCE_RANGE:
@@ -207,27 +215,31 @@ func summaryHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		longest_distance := r.URL.Query().Get(DISTANCE_RANGE_MAX_PARAM)
 		typ := r.URL.Query().Get(TYPE_PARAM)
 		if longest_distance == "" {
-			whereClause = "length_miles >= (" + shortest_distance + " + 0.0 )"
+			whereClause = "length_miles >= (? + 0.0)"
+			args = []interface{}{shortest_distance}
 			qp = DISTANCE_RANGE_MIN_PARAM + "=" + shortest_distance
 			desc = "Tracks with length >= " + shortest_distance + " miles"
 		} else if shortest_distance == "" {
-			whereClause = "length_miles <= (" + longest_distance + " + 0.0 )"
+			whereClause = "length_miles <= (? + 0.0)"
+			args = []interface{}{longest_distance}
 			qp = DISTANCE_RANGE_MAX_PARAM + "=" + longest_distance
 			desc = "Tracks with length <= " + longest_distance + " miles"
 		} else {
-			whereClause = "length_miles >= (" + shortest_distance + " + 0.0 ) AND length_miles <= (" + longest_distance + " + 0.0 )"
+			whereClause = "length_miles >= (? + 0.0) AND length_miles <= (? + 0.0)"
+			args = []interface{}{shortest_distance, longest_distance}
 			qp = DISTANCE_RANGE_MIN_PARAM + "=" + shortest_distance + "&" + DISTANCE_RANGE_MAX_PARAM + "=" + longest_distance
 			desc = "Tracks between " + shortest_distance + " and " + longest_distance + " miles"
 		}
 		if typ != "" {
-			whereClause += " AND type = '" + typ + "'"
+			whereClause += " AND type = ?"
+			args = append(args, typ)
 			qp += "&" + TYPE_PARAM + "=" + typ
 			desc += " having Type '" + typ + "'"
 		}
 
 	default:
 	}
-	allTracks := readTracks(db, orderBy, order, whereClause)
+	allTracks := readTracks(db, orderBy, order, whereClause, args)
 
 	// Parse query parameters
 	pageStr := r.URL.Query().Get("page")
@@ -301,7 +313,7 @@ func parsePositiveInt(s string) (int, error) {
 
 // readTracks
 // ===
-func readTracks(db *sql.DB, orderBy string, order string, whereClause string) []Track {
+func readTracks(db *sql.DB, orderBy string, order string, whereClause string, args []interface{}) []Track {
 
 	fields := []string{
 		"track_id",
@@ -336,7 +348,7 @@ func readTracks(db *sql.DB, orderBy string, order string, whereClause string) []
 	}
 	defer stmt.Close()
 
-	rows, err := stmt.Query()
+	rows, err := stmt.Query(args...)
 	if err != nil {
 		log.Fatal(err)
 	}
