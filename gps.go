@@ -456,9 +456,9 @@ func main() {
 	}
 	fmt.Println("Connected!")
 
-	fs := http.FileServer(http.Dir("./static"))
+	fs := http.FileServer(http.Dir("./html"))
 	mux := http.NewServeMux()
-	mux.Handle("/static/", http.StripPrefix("/static/", fs))
+	mux.Handle("/static/", http.StripPrefix("/html/", fs))
 
 	mux.HandleFunc("/summary/", func(w http.ResponseWriter, r *http.Request) {
 		summaryHandler(w, r, db)
