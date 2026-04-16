@@ -17,6 +17,29 @@ import (
 )
 
 // ====================================================================================================================
+// constants
+
+// query types
+const UNALLOCATED = "unallocated"
+const REGION = "region"
+const TYPE = "type"
+const YEAR = "year"
+const REGION_AND_TYPE = "regionandtype"
+const TRACK_ID_IN = "trackidin"
+const DATE_RANGE = "date_range"
+const DISTANCE_RANGE = "distance_range"
+
+// parameters for query types
+const REGION_PARAM = "region"
+const TYPE_PARAM = "type"
+const YEAR_PARAM = "year"
+const TRACK_ID_IN_PARAM = "ids"
+const DATE_RANGE_START_PARAM = "start_date"
+const DATE_RANGE_END_PARAM = "end_date"
+const DISTANCE_RANGE_MIN_PARAM = "shortest_distance"
+const DISTANCE_RANGE_MAX_PARAM = "longest_distance"
+
+// ====================================================================================================================
 // Types
 
 type Track struct {
@@ -129,41 +152,41 @@ func summaryHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	var whereClause string
 	var desc string
 	switch qt {
-	case "unallocated":
-		typ := r.URL.Query().Get("type")
+	case UNALLOCATED:
+		typ := r.URL.Query().Get(TYPE_PARAM)
 		whereClause = "region is null and type = '" + typ + "'"
 		desc = "Not allocated to a region and type = " + typ
-	case "regionandtype":
-		region := r.URL.Query().Get("region")
-		typ := r.URL.Query().Get("type")
+	case REGION_AND_TYPE:
+		region := r.URL.Query().Get(REGION_PARAM)
+		typ := r.URL.Query().Get(TYPE_PARAM)
 		whereClause = "region = '" + region + "' and type = '" + typ + "'"
 		desc = "Region = '" + region + "' and with type '" + typ + "'"
-	case "region":
-		region := r.URL.Query().Get("region")
+	case REGION:
+		region := r.URL.Query().Get(REGION_PARAM)
 		whereClause = "region = '" + region + "'"
 		desc = "Region = '" + region + "'"
-	case "type":
-		typ := r.URL.Query().Get("type")
+	case TYPE:
+		typ := r.URL.Query().Get(TYPE_PARAM)
 		whereClause = "type = '" + typ + "'"
 		desc = "Type '" + typ + "'"
-	case "year":
-		year := r.URL.Query().Get("year")
-		typ := r.URL.Query().Get("type")
+	case YEAR:
+		year := r.URL.Query().Get(YEAR_PARAM)
+		typ := r.URL.Query().Get(TYPE_PARAM)
 		whereClause = "year(start_time) = " + year + " and type = '" + typ + "'"
 		desc = "Year " + year + " with type '" + typ + "'"
-	case "trackidin":
-		ids := r.URL.Query().Get("ids")
+	case TRACK_ID_IN:
+		ids := r.URL.Query().Get(TRACK_ID_IN_PARAM)
 		whereClause = "track_id in (" + ids + ")"
 		desc = "Tracks with IDs in " + ids
-	case "date_range":
-		start_date := r.URL.Query().Get("start_date")
-		end_date := r.URL.Query().Get("end_date")
+	case DATE_RANGE:
+		start_date := r.URL.Query().Get(DATE_RANGE_START_PARAM)
+		end_date := r.URL.Query().Get(DATE_RANGE_END_PARAM)
 		whereClause = "start_time >= '" + start_date + "' AND start_time <= '" + end_date + "'"
 		desc = "Tracks between " + start_date + " and " + end_date
-	case "distance_range":
-		shortest_distance := r.URL.Query().Get("shortest_distance")
-		longest_distance := r.URL.Query().Get("longest_distance")
-		typ := r.URL.Query().Get("type")
+	case DISTANCE_RANGE:
+		shortest_distance := r.URL.Query().Get(DISTANCE_RANGE_MIN_PARAM)
+		longest_distance := r.URL.Query().Get(DISTANCE_RANGE_MAX_PARAM)
+		typ := r.URL.Query().Get(TYPE_PARAM)
 		if longest_distance == "" {
 			whereClause = "length_miles >= (" + shortest_distance + " + 0.0 )"
 			desc = "Tracks with length >= " + shortest_distance + " miles"
