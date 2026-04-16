@@ -16,8 +16,8 @@ import (
 	"github.com/go-sql-driver/mysql"
 )
 
-// ====================================================================================================================
-// constants
+// Constants
+// ===
 
 // query types
 const UNALLOCATED = "unallocated"
@@ -39,8 +39,8 @@ const DATE_RANGE_END_PARAM = "end_date"
 const DISTANCE_RANGE_MIN_PARAM = "shortest_distance"
 const DISTANCE_RANGE_MAX_PARAM = "longest_distance"
 
-// ====================================================================================================================
 // Types
+// ===
 
 type Track struct {
 	ID          int             `db:"id"`
@@ -76,8 +76,8 @@ type Page struct {
 	QueryParameters string
 }
 
-// ====================================================================================================================
 // Globals
+// ===
 // map of functions that can be used in the templates, and the templates themselves.
 var templates = template.Must(template.New("").Funcs(template.FuncMap{
 	"add": func(a, b int) int { return a + b },
@@ -134,7 +134,8 @@ var templates = template.Must(template.New("").Funcs(template.FuncMap{
 	},
 }).ParseFiles("templates/summary.html"))
 
-// ====================================================================================================================
+// renderTemplate
+// ===
 func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
 	err := templates.ExecuteTemplate(w, tmpl+".html", p)
 	if err != nil {
@@ -142,7 +143,8 @@ func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
 	}
 }
 
-// ====================================================================================================================
+// summaryHandler
+// ===
 func summaryHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	orderBy := r.URL.Query().Get("order_by")
 	if orderBy == "" {
@@ -166,13 +168,13 @@ func summaryHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		typ := r.URL.Query().Get(TYPE_PARAM)
 		whereClause = "region is null and type = '" + typ + "'"
 		qp = TYPE_PARAM + "=" + typ
-		desc = "Not allocated to a region and type = " + typ
+		desc = "Not allocated to a region having type = " + typ
 	case REGION_AND_TYPE:
 		region := r.URL.Query().Get(REGION_PARAM)
 		typ := r.URL.Query().Get(TYPE_PARAM)
 		whereClause = "region = '" + region + "' and type = '" + typ + "'"
 		qp = REGION_PARAM + "=" + region + "&" + TYPE_PARAM + "=" + typ
-		desc = "Region = '" + region + "' and with type '" + typ + "'"
+		desc = "Region = '" + region + "' having type = '" + typ + "'"
 	case REGION:
 		region := r.URL.Query().Get(REGION_PARAM)
 		whereClause = "region = '" + region + "'"
@@ -182,18 +184,18 @@ func summaryHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		typ := r.URL.Query().Get(TYPE_PARAM)
 		whereClause = "type = '" + typ + "'"
 		qp = TYPE_PARAM + "=" + typ
-		desc = "Type '" + typ + "'"
+		desc = "Type = '" + typ + "'"
 	case YEAR:
 		year := r.URL.Query().Get(YEAR_PARAM)
 		typ := r.URL.Query().Get(TYPE_PARAM)
 		whereClause = "year(start_time) = " + year + " and type = '" + typ + "'"
 		qp = YEAR_PARAM + "=" + year + "&" + TYPE_PARAM + "=" + typ
-		desc = "Year " + year + " with type '" + typ + "'"
+		desc = "Year " + year + " having type = '" + typ + "'"
 	case TRACK_ID_IN:
 		ids := r.URL.Query().Get(TRACK_ID_IN_PARAM)
 		whereClause = "track_id in (" + ids + ")"
 		qp = TRACK_ID_IN_PARAM + "=" + ids
-		desc = "Tracks with IDs in " + ids
+		desc = "Tracks with IDs matching " + ids
 	case DATE_RANGE:
 		start_date := r.URL.Query().Get(DATE_RANGE_START_PARAM)
 		end_date := r.URL.Query().Get(DATE_RANGE_END_PARAM)
@@ -220,7 +222,7 @@ func summaryHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		if typ != "" {
 			whereClause += " AND type = '" + typ + "'"
 			qp += "&" + TYPE_PARAM + "=" + typ
-			desc += " with type '" + typ + "'"
+			desc += " having Type '" + typ + "'"
 		}
 
 	default:
@@ -289,14 +291,16 @@ func summaryHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	renderTemplate(w, "summary", page)
 }
 
-// ====================================================================================================================
+// parsePositiveInt
+// ===
 func parsePositiveInt(s string) (int, error) {
 	var result int
 	_, err := fmt.Sscanf(s, "%d", &result)
 	return result, err
 }
 
-// ====================================================================================================================
+// readTracks
+// ===
 func readTracks(db *sql.DB, orderBy string, order string, whereClause string) []Track {
 
 	fields := []string{
@@ -368,7 +372,8 @@ func readTracks(db *sql.DB, orderBy string, order string, whereClause string) []
 	return tracks
 }
 
-// ====================================================================================================================
+// openDatabase
+// ===
 func openDatabase(configMap map[string]any) *sql.DB {
 	cfg := &mysql.Config{
 		User:                 configMap["user"].(string),
@@ -386,7 +391,8 @@ func openDatabase(configMap map[string]any) *sql.DB {
 	return db
 }
 
-// ====================================================================================================================
+// readConfigFile
+// ===
 func readConfigFile(configFileStr string) map[string]interface{} {
 	configFile, err := os.Open(configFileStr)
 	if err == nil {
@@ -409,7 +415,8 @@ func readConfigFile(configFileStr string) map[string]interface{} {
 	return configMap
 }
 
-// ====================================================================================================================
+// main
+// ===
 func main() {
 
 	var configFileStr string
@@ -446,5 +453,3 @@ func main() {
 	})
 	log.Fatal(http.ListenAndServe(":8080", mux))
 }
-
-// ====================================================================================================================
