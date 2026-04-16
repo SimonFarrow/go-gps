@@ -64,15 +64,16 @@ type Track struct {
 }
 
 type Page struct {
-	Title       string
-	Tracks      []Track
-	CurrentPage int
-	PageSize    int
-	TotalTracks int
-	TotalPages  int
-	OrderBy     string
-	Order       string
-	QueryType   string
+	Title           string
+	Tracks          []Track
+	CurrentPage     int
+	PageSize        int
+	TotalTracks     int
+	TotalPages      int
+	OrderBy         string
+	Order           string
+	QueryType       string
+	QueryParameters string
 }
 
 // ====================================================================================================================
@@ -120,10 +121,18 @@ var templates = template.Must(template.New("").Funcs(template.FuncMap{
 				arrow = "▲"
 			}
 		}
-		url := fmt.Sprintf("./?pageSize=%d&amp;Page=%d&amp;order_by=%s&amp;order=%s", p.PageSize, p.CurrentPage, field, nextOrder)
+
+		format := "./?pageSize=%d&Page=%d&order_by=%s&order=%s"
+		url := fmt.Sprintf(format, p.PageSize, p.CurrentPage, field, nextOrder)
+		if p.QueryType != "" {
+			url += fmt.Sprintf("&qt=%s", p.QueryType)
+			if p.QueryParameters != "" {
+				url += fmt.Sprintf("&%s", p.QueryParameters)
+			}
+		}
 		return template.HTML(fmt.Sprintf(`<a href="%s">%s%s</a>`, url, label, arrow))
 	},
-}).ParseFiles("html/summary.html"))
+}).ParseFiles("templates/summary.html"))
 
 // ====================================================================================================================
 func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
@@ -150,38 +159,46 @@ func summaryHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	qt := r.URL.Query().Get("qt")
 
 	var whereClause string
+	var qp string
 	var desc string
 	switch qt {
 	case UNALLOCATED:
 		typ := r.URL.Query().Get(TYPE_PARAM)
 		whereClause = "region is null and type = '" + typ + "'"
+		qp = TYPE_PARAM + "=" + typ
 		desc = "Not allocated to a region and type = " + typ
 	case REGION_AND_TYPE:
 		region := r.URL.Query().Get(REGION_PARAM)
 		typ := r.URL.Query().Get(TYPE_PARAM)
 		whereClause = "region = '" + region + "' and type = '" + typ + "'"
+		qp = REGION_PARAM + "=" + region + "&" + TYPE_PARAM + "=" + typ
 		desc = "Region = '" + region + "' and with type '" + typ + "'"
 	case REGION:
 		region := r.URL.Query().Get(REGION_PARAM)
 		whereClause = "region = '" + region + "'"
+		qp = REGION_PARAM + "=" + region
 		desc = "Region = '" + region + "'"
 	case TYPE:
 		typ := r.URL.Query().Get(TYPE_PARAM)
 		whereClause = "type = '" + typ + "'"
+		qp = TYPE_PARAM + "=" + typ
 		desc = "Type '" + typ + "'"
 	case YEAR:
 		year := r.URL.Query().Get(YEAR_PARAM)
 		typ := r.URL.Query().Get(TYPE_PARAM)
 		whereClause = "year(start_time) = " + year + " and type = '" + typ + "'"
+		qp = YEAR_PARAM + "=" + year + "&" + TYPE_PARAM + "=" + typ
 		desc = "Year " + year + " with type '" + typ + "'"
 	case TRACK_ID_IN:
 		ids := r.URL.Query().Get(TRACK_ID_IN_PARAM)
 		whereClause = "track_id in (" + ids + ")"
+		qp = TRACK_ID_IN_PARAM + "=" + ids
 		desc = "Tracks with IDs in " + ids
 	case DATE_RANGE:
 		start_date := r.URL.Query().Get(DATE_RANGE_START_PARAM)
 		end_date := r.URL.Query().Get(DATE_RANGE_END_PARAM)
 		whereClause = "start_time >= '" + start_date + "' AND start_time <= '" + end_date + "'"
+		qp = DATE_RANGE_START_PARAM + "=" + start_date + "&" + DATE_RANGE_END_PARAM + "=" + end_date
 		desc = "Tracks between " + start_date + " and " + end_date
 	case DISTANCE_RANGE:
 		shortest_distance := r.URL.Query().Get(DISTANCE_RANGE_MIN_PARAM)
@@ -189,16 +206,20 @@ func summaryHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		typ := r.URL.Query().Get(TYPE_PARAM)
 		if longest_distance == "" {
 			whereClause = "length_miles >= (" + shortest_distance + " + 0.0 )"
+			qp = DISTANCE_RANGE_MIN_PARAM + "=" + shortest_distance
 			desc = "Tracks with length >= " + shortest_distance + " miles"
 		} else if shortest_distance == "" {
 			whereClause = "length_miles <= (" + longest_distance + " + 0.0 )"
+			qp = DISTANCE_RANGE_MAX_PARAM + "=" + longest_distance
 			desc = "Tracks with length <= " + longest_distance + " miles"
 		} else {
 			whereClause = "length_miles >= (" + shortest_distance + " + 0.0 ) AND length_miles <= (" + longest_distance + " + 0.0 )"
+			qp = DISTANCE_RANGE_MIN_PARAM + "=" + shortest_distance + "&" + DISTANCE_RANGE_MAX_PARAM + "=" + longest_distance
 			desc = "Tracks between " + shortest_distance + " and " + longest_distance + " miles"
 		}
 		if typ != "" {
 			whereClause += " AND type = '" + typ + "'"
+			qp += "&" + TYPE_PARAM + "=" + typ
 			desc += " with type '" + typ + "'"
 		}
 
@@ -253,15 +274,16 @@ func summaryHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	}
 
 	page := &Page{
-		Title:       "Tracks",
-		Tracks:      pageTracks,
-		CurrentPage: currentPage,
-		PageSize:    pageSize,
-		TotalTracks: totalTracks,
-		TotalPages:  totalPages,
-		OrderBy:     orderBy,
-		Order:       order,
-		QueryType:   qt,
+		Title:           "Tracks",
+		Tracks:          pageTracks,
+		CurrentPage:     currentPage,
+		PageSize:        pageSize,
+		TotalTracks:     totalTracks,
+		TotalPages:      totalPages,
+		OrderBy:         orderBy,
+		Order:           order,
+		QueryType:       qt,
+		QueryParameters: qp,
 	}
 
 	renderTemplate(w, "summary", page)
