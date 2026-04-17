@@ -1,0 +1,61 @@
+<style>
+  table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+  }
+</style>
+
+
+<table align="center">
+	<caption>Side by side views of the same summary query for both implementations</caption>
+	<tr>
+		<th>view</th>
+		<th>perl</th>
+		<th>go</th>
+	</tr>
+	<tr>
+		<td>Date Range</td>
+		<td><a href="https://farrowburgess.noip.me/cgi-bin/gps/summary.pl?page=1&pageSize=16&qt=date_range&start_date=2026-01-01&end_date=2026-04-15">view</a></td>
+		<td><a href="http://localhost:8080/summary?page=1&pageSize=16&qt=date_range&start_date=2026-01-01&end_date=2026-04-15">view</a></td>
+	</tr>
+	<tr>
+		<td>Distance Range</td>
+		<td><a href="https://farrowburgess.noip.me/cgi-bin/gps/summary.pl?page=1&pageSize=16&qt=distance_range&shortest_distance=5.0&longtest_distance=10.0">view</a></td>
+		<td><a href="http://localhost:8080/summary?page=1&pageSize=16&qt=distance_range&shortest_distance=5.0&longtest_distance=10.0">view</a></td>
+	</tr>
+	<tr>
+		<td>Region</td>
+		<td><a href="https://farrowburgess.noip.me/cgi-bin/gps/summary.pl?page=1&pageSize=16&qt=region&region=Howgills">view</a></td>
+		<td><a href="http://localhost:8080/summary?page=1&pageSize=16&qt=region&region=Howgills">view</a></td>
+	</tr>
+	<tr>
+		<td>Region and Type</td>
+		<td><a href="https://farrowburgess.noip.me/cgi-bin/gps/summary.pl?page=1&pageSize=16&qt=regionandtype&region=Howgills&type=Walk">view</a></td>
+		<td><a href="http://localhost:8080/summary?page=1&pageSize=16&qt=regionandtype&region=Howgills&type=Walk">view</a></td>
+	</tr>
+	<tr>
+		<td>Track id in</td>
+		<td><a href="https://farrowburgess.noip.me/cgi-bin/gps/summary.pl?page=1&pageSize=16&qt=trackidin&ids=1017,1015">view</a></td>
+		<td><a href="http://localhost:8080/summary?page=1&pageSize=16&qt=trackidin&ids=1036,1039">view</a></td>
+	</tr>
+	<tr>
+		<td>Type</td>
+		<td><a href="https://farrowburgess.noip.me/cgi-bin/gps/summary.pl?page=1&pageSize=16&qt=type&type=Walk">view</a></td>
+		<td><a href="http://localhost:8080/summary?page=1&pageSize=16&qt=type&type=Walk">view</a></td>
+	</tr>
+	<tr>
+		<td>Unallocated</td>
+		<td><a href="https://farrowburgess.noip.me/cgi-bin/gps/summary.pl?page=1&pageSize=16&qt=unallocated&type=Walk">view</a></td>
+		<td><a href="http://localhost:8080/summary?page=1&pageSize=16&qt=unallocated&type=Walk">view</a></td>
+	</tr>
+	<tr>
+		<td>Year</td>
+		<td><a href="https://farrowburgess.noip.me/cgi-bin/gps/summary.pl?page=1&pageSize=16&qt=year&year=2022&type=Walk">view</a></td>
+		<td><a href="http://localhost:8080/summary?page=1&pageSize=16&qt=year&year=2022&type=Walk">view</a></td>
+	</tr>
+	<tr>
+		<td>Default</td>
+		<td><a href="https://farrowburgess.noip.me/cgi-bin/gps/summary.pl?page=1&pageSize=16">view</a></td>
+		<td><a href="http://localhost:8080/summary?page=1&pageSize=16">view</a></td>
+	</tr>
+</table>
