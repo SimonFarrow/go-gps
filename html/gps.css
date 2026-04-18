@@ -1,31 +1,17 @@
-/* gps.css - Common css data */
+/* gps.css - Common css data for go application*/
 
-body {
-	font-family: Courier;
-	font-size: small;
-	margin: 20px;
+tr {color: black;}
+tr.odd{background-color: #B3FF99;}
+tr.even{background-color: #FFCC66;}
+
+body { 
+	font-family:"Courier"; 
+	font-size:small;
 	background: url(/html/IMAG0501.jpg);
-	background-position: center no-repeat;
-	background-size: cover;
+	background-position: center no-repeat; 
+	background-size:cover;
 }
 
-table {
-	border-collapse: collapse;
-	width: 100%;
-	margin-top: 20px;
-}
-
-td {
-	border: 1px solid #ddd;
-	text-align: left;
-}
-
-th {
-	border: 1px solid #ddd;
-	background-color: white;
-	text-align: center;
-	color: blue
-}
 
 .pagination {
 	margin-top: 20px;
@@ -74,14 +60,4 @@ th {
 	padding: 5px;
 }
 
-tr {
-	color: black;
-}
-
-tr.odd {
-	background-color: #B3FF99;
-}
-
-tr.even {
-	background-color: #FFCC66;
-}
+th { background-color : white;	color : blue }
