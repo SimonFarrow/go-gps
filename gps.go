@@ -217,7 +217,7 @@ func summaryHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		whereClause = "region is null and type = ?"
 		args = []interface{}{typ}
 		qp = TYPE_PARAM + "=" + typ
-		desc = "Not allocated to a region having type = " + typ
+		desc = typ + "s not allocated to a region"
 		droplist = append(droplist, "Type", "Region", "Level")
 	case REGION_AND_TYPE:
 		region := r.URL.Query().Get(REGION_PARAM)
@@ -225,21 +225,21 @@ func summaryHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		whereClause = "region = ? and type = ?"
 		args = []interface{}{region, typ}
 		qp = REGION_PARAM + "=" + region + "&" + TYPE_PARAM + "=" + typ
-		desc = "Region = '" + region + "' having type = '" + typ + "'"
+		desc = typ + "s in " + region
 		droplist = append(droplist, "Type", "Region")
 	case REGION:
 		region := r.URL.Query().Get(REGION_PARAM)
 		whereClause = "region = ?"
 		args = []interface{}{region}
 		qp = REGION_PARAM + "=" + region
-		desc = "Region = '" + region + "'"
+		desc = "Tracks in " + region
 		droplist = append(droplist, "Region", "Level")
 	case TYPE:
 		typ := r.URL.Query().Get(TYPE_PARAM)
 		whereClause = "type = ?"
 		args = []interface{}{typ}
 		qp = TYPE_PARAM + "=" + typ
-		desc = "Type = '" + typ + "'"
+		desc = typ + "s"
 		droplist = append(droplist, "Type")
 	case YEAR:
 		year := r.URL.Query().Get(YEAR_PARAM)
@@ -247,7 +247,7 @@ func summaryHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		whereClause = "year(start_time) = ? and type = ?"
 		args = []interface{}{year, typ}
 		qp = YEAR_PARAM + "=" + year + "&" + TYPE_PARAM + "=" + typ
-		desc = "Year " + year + " having type = '" + typ + "'"
+		desc = typ + "s in " + year
 		droplist = append(droplist, "Type")
 	case TRACK_ID_IN:
 		idsStr := r.URL.Query().Get(TRACK_ID_IN_PARAM)
@@ -267,7 +267,7 @@ func summaryHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		whereClause = "start_time >= ? AND start_time <= ?"
 		args = []interface{}{start_date, end_date}
 		qp = DATE_RANGE_START_PARAM + "=" + start_date + "&" + DATE_RANGE_END_PARAM + "=" + end_date
-		desc = "Tracks between " + start_date + " and " + end_date
+		desc = "Tracks from " + start_date + " to " + end_date
 	case DISTANCE_RANGE:
 		shortest_distance := r.URL.Query().Get(DISTANCE_RANGE_MIN_PARAM)
 		longest_distance := r.URL.Query().Get(DISTANCE_RANGE_MAX_PARAM)
@@ -277,26 +277,29 @@ func summaryHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 			whereClause = "length_miles >= (? + 0.0)"
 			args = []interface{}{shortest_distance}
 			qp = DISTANCE_RANGE_MIN_PARAM + "=" + shortest_distance
-			desc = "Tracks with length >= " + shortest_distance + " miles"
+			desc = " longer than " + shortest_distance + " miles"
 		} else if shortest_distance == "" {
 			whereClause = "length_miles <= (? + 0.0)"
 			args = []interface{}{longest_distance}
 			qp = DISTANCE_RANGE_MAX_PARAM + "=" + longest_distance
-			desc = "Tracks with length <= " + longest_distance + " miles"
+			desc = " shorter than " + longest_distance + " miles"
 		} else {
 			whereClause = "length_miles >= (? + 0.0) AND length_miles <= (? + 0.0)"
 			args = []interface{}{shortest_distance, longest_distance}
 			qp = DISTANCE_RANGE_MIN_PARAM + "=" + shortest_distance + "&" + DISTANCE_RANGE_MAX_PARAM + "=" + longest_distance
-			desc = "Tracks between " + shortest_distance + " and " + longest_distance + " miles"
+			desc = " between " + shortest_distance + " and " + longest_distance + " miles"
 		}
 
 		if typ != "" {
 			whereClause += " AND type = ?"
 			args = append(args, typ)
 			qp += "&" + TYPE_PARAM + "=" + typ
-			desc += " having Type '" + typ + "'"
 			droplist = append(droplist, "Type")
+			desc = typ + "s" + desc
+		} else {
+			desc = "Tracks" + desc
 		}
+
 
 	default:
 	}
@@ -346,7 +349,7 @@ func summaryHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	}
 
 	page := &Page{
-		Title:           "Track summary (" + desc + ")",
+		Title:           desc,
 		Tracks:          pageTracks,
 		CurrentPage:     currentPage,
 		PageSize:        pageSize,
