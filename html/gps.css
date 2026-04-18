@@ -1,3 +1,5 @@
+/* gps.css - Common css data */
+
 body {
 	font-family: Courier;
 	font-size: small;
@@ -13,15 +15,15 @@ table {
 	margin-top: 20px;
 }
 
-th,
 td {
 	border: 1px solid #ddd;
-	padding: 8px;
 	text-align: left;
 }
 
 th {
+	border: 1px solid #ddd;
 	background-color: white;
+	text-align: center;
 	color: blue
 }
 

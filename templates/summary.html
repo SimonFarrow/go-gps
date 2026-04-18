@@ -73,7 +73,7 @@
         </tr>
         {{range .Tracks}}
         <tr class="{{if eq (mod .SeqNum 2) 0}}even{{else}}odd{{end}}">
-            <td style="text-align:right">{{.ID}}</td>
+            <td style="text-align:right"><a href="https://farrowburgess.noip.me/cgi-bin/gps/track.pl?track={{.ID}}">{{.ID}}</a></td>
             <td>{{.Description}}</td>
             <td>{{.Source}}</td>
             <td style="text-align:right">{{.Points}}</td>
