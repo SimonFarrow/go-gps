@@ -139,9 +139,9 @@ var templates = template.Must(template.New("").Funcs(template.FuncMap{
 		if p.OrderBy == field {
 			if strings.ToUpper(p.Order) == "ASC" {
 				nextOrder = "DESC"
-				arrow = "▼"
-			} else {
 				arrow = "▲"
+			} else {
+				arrow = "▼"
 			}
 		}
 
