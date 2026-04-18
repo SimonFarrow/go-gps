@@ -40,6 +40,27 @@ const DATE_RANGE_END_PARAM = "end_date"
 const DISTANCE_RANGE_MIN_PARAM = "shortest_distance"
 const DISTANCE_RANGE_MAX_PARAM = "longest_distance"
 
+// FIELDS is the list of fields in the Summary table, and is used to construct the SQL query and to validate the order_by parameter.
+// cant be declared const for dogmatic go reasons, but should be treated as a constant.
+var FIELDS = []string{
+	"track_id",
+	"source",
+	"description",
+	"points",
+	"segments",
+	"start_time",
+	"finish_time",
+	"duration",
+	"region",
+	"level",
+	"length_miles",
+	"max_speed",
+	"avg_speed",
+	"up",
+	"down",
+	"total_ascent",
+	"type"}
+
 // Types
 // ===
 
@@ -157,6 +178,11 @@ func summaryHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	orderBy := r.URL.Query().Get("order_by")
 	if orderBy == "" {
 		orderBy = "start_time"
+	} else {
+		if !slices.Contains(FIELDS, orderBy) {
+			http.Error(w, "Invalid order_by parameter. Must be one of: "+strings.Join(FIELDS, ", "), http.StatusBadRequest)
+			return
+		}
 	}
 
 	order := r.URL.Query().Get("order")
@@ -337,26 +363,7 @@ func parsePositiveInt(s string) (int, error) {
 // ===
 func readTracks(db *sql.DB, orderBy string, order string, whereClause string, args []interface{}) []Track {
 
-	fields := []string{
-		"track_id",
-		"source",
-		"description",
-		"points",
-		"segments",
-		"start_time",
-		"finish_time",
-		"duration",
-		"region",
-		"level",
-		"length_miles",
-		"max_speed",
-		"avg_speed",
-		"up",
-		"down",
-		"total_ascent",
-		"type"}
-
-	fieldList := strings.Join(fields, ", ")
+	fieldList := strings.Join(FIELDS, ", ")
 	query := "SELECT " + fieldList + " FROM Summary"
 
 	if whereClause != "" {
