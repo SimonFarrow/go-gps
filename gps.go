@@ -213,11 +213,17 @@ func summaryHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		desc = "Year " + year + " having type = '" + typ + "'"
 		droplist = append(droplist, "Type")
 	case TRACK_ID_IN:
-		// TODO this is not parameterised
-		ids := r.URL.Query().Get(TRACK_ID_IN_PARAM)
-		whereClause = "track_id in (" + ids + ")"
-		qp = TRACK_ID_IN_PARAM + "=" + ids
-		desc = "Tracks with IDs matching " + ids
+		idsStr := r.URL.Query().Get(TRACK_ID_IN_PARAM)
+		ids := strings.Split(idsStr, ",")
+		qmarks := strings.Repeat("?,", len(ids))
+		qmarks = qmarks[:len(qmarks)-1] // Remove trailing comma
+		whereClause = "track_id in (" + qmarks + ")"
+		args = make([]interface{}, len(ids))
+		for i, id := range ids {
+			args[i] = id
+		}
+		qp = TRACK_ID_IN_PARAM + "=" + idsStr
+		desc = "Tracks with IDs matching " + idsStr
 	case DATE_RANGE:
 		start_date := r.URL.Query().Get(DATE_RANGE_START_PARAM)
 		end_date := r.URL.Query().Get(DATE_RANGE_END_PARAM)
@@ -303,7 +309,7 @@ func summaryHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	}
 
 	page := &Page{
-		Title:           "Tracks",
+		Title:           "Track summary (" + desc + ")",
 		Tracks:          pageTracks,
 		CurrentPage:     currentPage,
 		PageSize:        pageSize,
