@@ -71,6 +71,7 @@
             <th>{{headerLink "Type" "type" .}}</th>
             <th>View</th>
         </tr>
+        {{$ctx := . }}
         {{range .Tracks}}
         <tr class="{{if eq (mod .SeqNum 2) 0}}even{{else}}odd{{end}}">
             <td style="text-align:right"><a
@@ -82,7 +83,9 @@
             <td>{{.StartTime}}</td>
             <td>{{.FinishTime}}</td>
             <td style="text-align:right">{{printf "%.2f" .Duration}}</td>
-            <td>{{if .Region.Valid}}{{.Region.String}}{{else}}N/A{{end}}</td>
+            <td>{{if .Region.Valid}}<a
+                    href="?page=1&pageSize={{$ctx.PageSize}}&qt=regionandtype&region={{.Region.String}}&type={{.Type}}">{{.Region.String}}</a>{{else}}N/A{{end}}
+            </td>
             <td style="text-align:right">{{if .Level.Valid}}{{.Level.Int32}}{{else}}N/A{{end}}</td>
             <td style="text-align:right">{{printf "%.2f" .LengthMiles}}</td>
             <td style="text-align:right">{{if .MaxSpeed.Valid}}{{printf "%.2f" .MaxSpeed.Float64}}{{else}}N/A{{end}}
