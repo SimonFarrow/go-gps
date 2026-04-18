@@ -155,6 +155,17 @@ var templates = template.Must(template.New("").Funcs(template.FuncMap{
 		}
 		return template.HTML(fmt.Sprintf(`<a href="%s">%s%s</a>`, url, label, arrow))
 	},
+	"pageLink": func(p *Page) template.URL {
+		format := "&order_by=%s&order=%s"
+		url := fmt.Sprintf(format, p.OrderBy, p.Order)
+		if p.QueryType != "" {
+			url += fmt.Sprintf("&qt=%s", p.QueryType)
+			if p.QueryParameters != "" {
+				url += fmt.Sprintf("&%s", p.QueryParameters)
+			}
+		}
+		return template.URL(url)
+	},
 	"columnVisibility": func(dropList []string, name string) template.CSS {
 		if slices.Contains(dropList, name) {
 			return template.CSS("visibility: collapse")
