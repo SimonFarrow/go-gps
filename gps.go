@@ -145,26 +145,11 @@ var templates = template.Must(template.New("").Funcs(template.FuncMap{
 			}
 		}
 
-		format := "./?pageSize=%d&Page=%d&order_by=%s&order=%s"
-		url := fmt.Sprintf(format, p.PageSize, p.CurrentPage, field, nextOrder)
-		if p.QueryType != "" {
-			url += fmt.Sprintf("&qt=%s", p.QueryType)
-			if p.QueryParameters != "" {
-				url += fmt.Sprintf("&%s", p.QueryParameters)
-			}
-		}
+		url := fmt.Sprintf("./?pageSize=%d&Page=%d%s", p.PageSize, p.CurrentPage, pageLink(p, field, nextOrder))
 		return template.HTML(fmt.Sprintf(`<a href="%s">%s%s</a>`, url, label, arrow))
 	},
 	"pageLink": func(p *Page) template.URL {
-		format := "&order_by=%s&order=%s"
-		url := fmt.Sprintf(format, p.OrderBy, p.Order)
-		if p.QueryType != "" {
-			url += fmt.Sprintf("&qt=%s", p.QueryType)
-			if p.QueryParameters != "" {
-				url += fmt.Sprintf("&%s", p.QueryParameters)
-			}
-		}
-		return template.URL(url)
+		return pageLink(p, p.OrderBy, p.Order)
 	},
 	"columnVisibility": func(dropList []string, name string) template.CSS {
 		if slices.Contains(dropList, name) {
@@ -173,6 +158,19 @@ var templates = template.Must(template.New("").Funcs(template.FuncMap{
 		return template.CSS("visibility: visible")
 	},
 }).ParseFiles("templates/summary.html"))
+
+// pageLink
+// ===
+func pageLink(p *Page, order_by, order string) template.URL {
+	url := "&order_by=" + order_by + "&order=" + order
+	if p.QueryType != "" {
+		url += "&qt=" + p.QueryType
+		if p.QueryParameters != "" {
+			url += "&" + p.QueryParameters
+		}
+	}
+	return template.URL(url)
+}
 
 // renderTemplate
 // ===
@@ -299,7 +297,6 @@ func summaryHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		} else {
 			desc = "Tracks" + desc
 		}
-
 
 	default:
 	}

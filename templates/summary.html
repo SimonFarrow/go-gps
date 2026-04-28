@@ -7,27 +7,38 @@
 </head>
 
 <body>
-    <h1>{{.Title}}</h1>
+    <h1 align="center">{{.Title}}</h1>
 
     {{if .TotalTracks}}
-    <div class="controls">
-        <label>Page Size:</label>
-        <select onchange="window.location.href='?page=1&pageSize=' + this.value">
-            <option value="10" {{if eq .PageSize 10}}selected{{end}}>10 per page</option>
-            <option value="25" {{if eq .PageSize 25}}selected{{end}}>25 per page</option>
-            <option value="50" {{if eq .PageSize 50}}selected{{end}}>50 per page</option>
-            <option value="100" {{if eq .PageSize 100}}selected{{end}}>100 per page</option>
-            <option value="250" {{if eq .PageSize 250}}selected{{end}}>250 per page</option>
-        </select>
-    </div>
-
-    <h2>Available Tracks:</h2>
-    <p class="page-info">
-        Showing {{if gt .TotalTracks 0}}{{add (mul (sub .CurrentPage 1) .PageSize) 1}}{{else}}0{{end}} to
-        {{if gt .TotalTracks 0}}{{if lt (mul .CurrentPage .PageSize) .TotalTracks}}{{mul .CurrentPage
-        .PageSize}}{{else}}{{.TotalTracks}}{{end}}{{else}}0{{end}}
-        of {{.TotalTracks}} tracks
-    </p>
+    <table>
+        <tr>
+            <div class="controls">
+                <td>
+                    <h2>Page Size:</h2>
+                </td>
+                <td>
+                    <select onchange="window.location.href='?page=1&pageSize=' + this.value">
+                        <option value="10" {{if eq .PageSize 10}}selected{{end}}>10 per page</option>
+                        <option value="25" {{if eq .PageSize 25}}selected{{end}}>25 per page</option>
+                        <option value="50" {{if eq .PageSize 50}}selected{{end}}>50 per page</option>
+                        <option value="100" {{if eq .PageSize 100}}selected{{end}}>100 per page</option>
+                        <option value="250" {{if eq .PageSize 250}}selected{{end}}>250 per page</option>
+                    </select>
+                </td>
+            </div>
+            <td>
+                <h2>Available Tracks:</h2>
+            </td>
+            <td>
+                <p class="page-info">
+                    Showing {{if gt .TotalTracks 0}}{{add (mul (sub .CurrentPage 1) .PageSize) 1}}{{else}}0{{end}} to
+                    {{if gt .TotalTracks 0}}{{if lt (mul .CurrentPage .PageSize) .TotalTracks}}{{mul .CurrentPage
+                    .PageSize}}{{else}}{{.TotalTracks}}{{end}}{{else}}0{{end}}
+                    of {{.TotalTracks}} tracks
+                </p>
+            </td>
+        </tr>
+    </table>
 
     <table>
         <colgroup>
