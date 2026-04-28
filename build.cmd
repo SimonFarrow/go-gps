@@ -12,6 +12,6 @@ rem ryzen
 	set GOOS=windows
 )
 
-go build gps.go
+go build gps.go templates.go
 
 pause
