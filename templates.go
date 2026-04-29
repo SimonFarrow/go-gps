@@ -68,5 +68,5 @@ func GetTemplates() *template.Template {
 			}
 			return template.CSS("visibility: visible")
 		},
-	}).ParseFiles("templates\\topnav.html", "templates\\summary.html"))
+	}).ParseFiles("templates\\topnav.html", "templates\\uploads.html", "templates\\tracksearch.html", "templates\\summary.html"))
 }

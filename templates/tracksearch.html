@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<!-- tracksearch.html page called from landing page -->
+<html>
+
+	<head>
+		<link rel="stylesheet" type="text/css" href="/html/gps.css" />
+		<style>
+			.button1 {width: 150px;}
+
+			table {
+			  border: 1px solid black;
+			  border-collapse: collapse;
+			}
+		</style>
+
+		<script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+		<script src="/html/gps.js"></script>
+
+		<script type="text/javascript">
+
+			function btnActivation(){
+				document.getElementById("gridref").value = document.getElementById("gridref").value.toUpperCase();
+
+				document.getElementById("location_button").disabled = !document.getElementById('location').value.length || !document.getElementById('tolerance').value.length;
+				var gridRGEX68 = /^[A-Z]{2}(\d{6}|\d{8})$/;
+				document.getElementById("gridref_button").disabled = !gridRGEX68.test(document.getElementById('gridref').value) || !document.getElementById('tolerance').value.length;
+
+				document.getElementById("date_range_button").disabled = 
+					document.getElementById('start_date').value == '' || 
+					document.getElementById('end_date').value == '' || 
+					document.getElementById('start_date').value > document.getElementById('end_date').value ;
+
+				document.getElementById("distance_range_button").disabled = 
+					( document.getElementById('shortest_distance').value == '' && document.getElementById('longest_distance').value == '' ) || 
+					( document.getElementById('shortest_distance').value != '' && document.getElementById('longest_distance').value != ''  && document.getElementById('shortest_distance').value > document.getElementById('longest_distance').value ) ;
+			}   
+
+			/* sets the calendars to today */
+			function toDateInputValue(dateObject){
+				const local = new Date(dateObject);
+				local.setMinutes(dateObject.getMinutes() - dateObject.getTimezoneOffset());
+				return local.toJSON().slice(0,10);
+			};
+
+			$(document).ready( function() {
+				var this_year = new Date();
+				this_year.setMonth(0);  /* starts at 0 */
+				this_year.setDate(1); /* actually day of month */
+				$('#start_date').val(toDateInputValue(this_year));
+				$('#end_date').val(toDateInputValue(new Date()));
+			});
+
+
+		</script>
+
+		<title>Track Search</title>
+	</head>
+
+	<body onpageshow="btnActivation()">
+
+		{{template "topnav" . }}
+
+		<h1 align="center">Track Search</h1>
+
+		<form name="coords" method="get">
+			<table align ="center">
+				<tr>
+					<td><label for="location">Location:</label></td><td><input type="text" name="location" id="location" onKeyUp="btnActivation()"/>
+					<td align="center"><input type="submit" value="Search Location" id="location_button" formaction="/cgi-bin/gps/coords.pl" class="button button1" disabled/></td>
+				</tr>
+				<tr>
+					<td><label for="gridref">Grid Ref:</label></td><td><input type="text" name="gridref" id="gridref" onKeyUp="btnActivation()" style="text-transform: uppercase" pattern="[A-Z]{2}(\d{6}|\d{8})" /></td>
+					<td align="center"><input type="submit" value="Search Gridref" id="gridref_button" formaction="/cgi-bin/gps/gr.pl" class="button button1" disabled/></td>
+				</tr>
+				<tr>
+					<td><label for="tolerance">Tolerance:</label></td><td><input type="number" name="tolerance" id="tolerance" value="0.0001" step="0.0001" min="0.0001" max="1.0000" onKeyUp="btnActivation()"/></td>
+				</tr>
+			</table>
+		</form>
+
+		<br/><br/>
+
+		<form name="date_range" action="/cgi-bin/gps/summary.pl" method="get">
+			<input type="hidden" name="qt" value="date_range"/>
+			<table align ="center">
+				<tr>
+					<td><label for="start_date">Start Date:</label></td><td><input type="date" name="start_date" id="start_date" onChange="btnActivation()" /></td>
+					<td><label for="end_date">End Date:</label></td><td><input type="date" name="end_date" id="end_date" onChange="btnActivation()" /></td>
+					<td align="center"><input type="submit" value="Search Date Range" id="date_range_button" class="button button1"/></td>
+				</tr>
+			</table>
+		</form>
+
+		<br/><br/>
+
+		<form name="distance_range" action="/cgi-bin/gps/summary.pl" method="get">
+			<input type="hidden" name="qt" value="distance_range"/>
+			<table align ="center">
+				<tr>
+					<td><label for="shortest_distance">At least:</label></td><td><input type="number" name="shortest_distance" id="shortest_distance" onKeyUp="btnActivation()" /></td>
+					<td><label for="longest_distance">Mo more than:</label></td><td><input type="number" name="longest_distance" id="longest_distance" onKeyUp="btnActivation()" /></td>
+					<td align="center"><input type="submit" value="Search Distance Range" id="distance_range_button" class="button button1" disabled/></td>
+				</tr>
+			</table>
+		</form>
+
+	</body>
+
+</html>

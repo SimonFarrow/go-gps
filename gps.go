@@ -308,6 +308,14 @@ func summaryHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	renderTemplate(w, "summary", page)
 }
 
+func tracksearchHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+	renderTemplate(w, "tracksearch", nil)
+}
+
+func uploadsHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+	renderTemplate(w, "uploads", nil)
+}
+
 // parsePositiveInt
 // ===
 func parsePositiveInt(s string) (int, error) {
@@ -450,6 +458,12 @@ func main() {
 
 	mux.HandleFunc("/summary/", func(w http.ResponseWriter, r *http.Request) {
 		summaryHandler(w, r, db)
+	})
+	mux.HandleFunc("/tracksearch/", func(w http.ResponseWriter, r *http.Request) {
+		tracksearchHandler(w, r, db)
+	})
+	mux.HandleFunc("/uploads/", func(w http.ResponseWriter, r *http.Request) {
+		uploadsHandler(w, r, db)
 	})
 	log.Fatal(http.ListenAndServe(":8080", mux))
 }

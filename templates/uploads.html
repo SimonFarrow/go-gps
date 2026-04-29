@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<!-- uploads.html -->
+<html lang="en">
+	<head>
+	  <meta charset="UTF-8">
+	  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	  <link rel="stylesheet" type="text/css" href="/html/gps.css" />
+	  <link rel="stylesheet" href="/html/uploads.css">
+	  <title>Drag-and-Drop File Uploader</title>
+	  <script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+	  <script src="/html/gps.js"></script>
+	</head>
+
+	<body>
+	  {{template "topnav" . }}
+	  <h1>Drag-and-Drop File Uploader</h1>
+	  <div id="drop-area">
+		Drag plt or gpx files here to upload
+	  </div>
+	  <input type="file" id="file-input" multiple hidden>
+	  <div id="preview-container"></div>
+	  <script src="upload.js"></script>
+	  <div id="results"></div>
+	</body>
+</html>
