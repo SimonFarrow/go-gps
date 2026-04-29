@@ -1,3 +1,6 @@
+// Package main implements GPS, a web application for managing GPS tracking data.
+// It provides HTTP endpoints for querying and filtering GPS tracks from a MySQL database,
+// with support for filtering by region, type, date range, distance, and track ID.
 package main
 
 import (

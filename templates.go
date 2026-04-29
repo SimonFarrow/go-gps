@@ -1,3 +1,6 @@
+// Package main provides template functions and utilities for rendering GPS tracking data.
+// This file defines custom template functions used in HTML templates for calculations,
+// string manipulation, and data formatting.
 package main
 
 import (
@@ -65,5 +68,5 @@ func GetTemplates() *template.Template {
 			}
 			return template.CSS("visibility: visible")
 		},
-	}).ParseFiles("templates/summary.html"))
+	}).ParseFiles("templates\\topnav.html", "templates\\summary.html"))
 }
