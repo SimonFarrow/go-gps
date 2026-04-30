@@ -11,8 +11,19 @@ import (
 	"strings"
 )
 
+var templateFiles = []string{
+	"topnav.html",
+	"uploads.html",
+	"tracksearch.html",
+	"summary.html",
+}
+
 // GetTemplates returns the parsed templates with custom functions.
 func GetTemplates() *template.Template {
+	paths := make([]string, len(templateFiles))
+	for i, f := range templateFiles {
+		paths[i] = filepath.Join("templates", f)
+	}
 	return template.Must(template.New("").Funcs(template.FuncMap{
 		"add": func(a, b int) int { return a + b },
 		"sub": func(a, b int) int { return a - b },
@@ -68,5 +79,5 @@ func GetTemplates() *template.Template {
 			}
 			return template.CSS("visibility: visible")
 		},
-	}).ParseFiles("templates\\topnav.html", "templates\\uploads.html", "templates\\tracksearch.html", "templates\\summary.html"))
+	}).ParseFiles(paths...))
 }
