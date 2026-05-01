@@ -12,9 +12,15 @@ import (
 )
 
 var templateFiles = []string{
-	"topnav.html",
+	"latestwalk.html",
+	"byyear.html",
+	"byregion.html",
+	"bytype.html",
+	"regions.html",
 	"uploads.html",
 	"tracksearch.html",
+	"databasestats.html",
+	"topnav.html",
 	"summary.html",
 }
 

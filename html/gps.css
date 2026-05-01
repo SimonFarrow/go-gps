@@ -50,6 +50,10 @@ body {
   color: white;
 }
 
+th { background-color : white;  color : blue }
+
+label { background-color : white; }
+
 .pagination {
 	margin-top: 20px;
 	text-align: center;
@@ -98,4 +102,4 @@ body {
 	padding: 5px;
 }
 
-th { background-color : white;	color : blue }
+

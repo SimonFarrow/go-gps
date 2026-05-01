@@ -308,12 +308,29 @@ func summaryHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	renderTemplate(w, "summary", page)
 }
 
+func latestwalkHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+	renderTemplate(w, "latestwalk", nil)
+}
+func byregionHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+	renderTemplate(w, "byregion", nil)
+}
+func bytypeHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+	renderTemplate(w, "bytype", nil)
+}
+func byyearHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+	renderTemplate(w, "byyear", nil)
+}
+func regionsHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+	renderTemplate(w, "regions", nil)
+}
 func tracksearchHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	renderTemplate(w, "tracksearch", nil)
 }
-
 func uploadsHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	renderTemplate(w, "uploads", nil)
+}
+func databasestatsHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+	renderTemplate(w, "databasestats", nil)
 }
 
 // parsePositiveInt
@@ -454,16 +471,36 @@ func main() {
 
 	fs := http.FileServer(http.Dir("./html"))
 	mux := http.NewServeMux()
+
+	// hand off for static files in the html directory
 	mux.Handle("/html/", http.StripPrefix("/html/", fs))
 
-	mux.HandleFunc("/summary/", func(w http.ResponseWriter, r *http.Request) {
-		summaryHandler(w, r, db)
+	mux.HandleFunc("/latestwalk/", func(w http.ResponseWriter, r *http.Request) {
+		latestwalkHandler(w, r, db)
+	})
+	mux.HandleFunc("/byregion/", func(w http.ResponseWriter, r *http.Request) {
+		byregionHandler(w, r, db)
+	})
+	mux.HandleFunc("/bytype/", func(w http.ResponseWriter, r *http.Request) {
+		bytypeHandler(w, r, db)
+	})
+	mux.HandleFunc("/byyear/", func(w http.ResponseWriter, r *http.Request) {
+		byyearHandler(w, r, db)
+	})
+	mux.HandleFunc("/regions/", func(w http.ResponseWriter, r *http.Request) {
+		regionsHandler(w, r, db)
 	})
 	mux.HandleFunc("/tracksearch/", func(w http.ResponseWriter, r *http.Request) {
 		tracksearchHandler(w, r, db)
 	})
 	mux.HandleFunc("/uploads/", func(w http.ResponseWriter, r *http.Request) {
 		uploadsHandler(w, r, db)
+	})
+	mux.HandleFunc("/databasestats/", func(w http.ResponseWriter, r *http.Request) {
+		databasestatsHandler(w, r, db)
+	})
+	mux.HandleFunc("/summary/", func(w http.ResponseWriter, r *http.Request) {
+		summaryHandler(w, r, db)
 	})
 	log.Fatal(http.ListenAndServe(":8080", mux))
 }
