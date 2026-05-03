@@ -551,7 +551,7 @@ func grHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		}
 		for i, code := range fields[2:] {
 			// Process each code
-			MapCoords[code] = [2]float64{float64(e) + float64(i)*100.0, float64(n) * 1000.0}
+			MapCoords[code] = [2]float64{(float64(e) + float64(i)*100.0) * 1000.0, float64(n) * 1000.0}
 		}
 	}
 
@@ -619,8 +619,16 @@ func getll(e float64, n float64) (float64, float64) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	fLat, ok := responseMap["LATITUDE"].(float64)
+	if !ok {
+		log.Fatal("invalid LATITUDE value")
+	}
+	fLng, ok := responseMap["LONGITUDE"].(float64)
+	if !ok {
+		log.Fatal("invalid LONGITUDE value")
+	}
 
-	return responseMap["latitude"].(float64), responseMap["longitude"].(float64)
+	return fLat, fLng
 }
 
 // parsePositiveInt
