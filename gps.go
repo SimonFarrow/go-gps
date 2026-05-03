@@ -421,10 +421,10 @@ func coordsHandler(w http.ResponseWriter, r *http.Request, db *sql.DB, apikey1 s
 			Geometry: Geometry{
 				Location: Location{
 					Lat: lat,
-					Lng: r.URL.Query().Get("lng"),
+					Lng: r.URL.Query().Get("long"),
 				},
 			},
-			Address: "addresxxx",
+			Address: "addressxxx",
 		})
 	} else {
 		// query the google api given the name of the location, and return the lat and lng
@@ -561,8 +561,10 @@ func grHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("gridref = %s, tolerance = %f", gridref, tolerance)
-	gr2ll(gridref)
+	//fmt.Printf("gridref = %s, tolerance = %f", gridref, tolerance)
+	lat, lng := gr2ll(gridref)
+
+	http.Redirect(w, r, "/coords?lat="+strconv.FormatFloat(lat, 'f', -1, 64)+"&long="+strconv.FormatFloat(lng, 'f', -1, 64)+"&tolerance="+strconv.FormatFloat(tolerance, 'f', -1, 64), http.StatusSeeOther)
 }
 
 func gr2ll(gr string) (float64, float64) {
