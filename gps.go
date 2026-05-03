@@ -15,6 +15,7 @@ import (
 	"os"
 	"runtime"
 	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/go-sql-driver/mysql"
@@ -400,12 +401,32 @@ func databasestatsHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 // Tracksearch handlers
 func coordsHandler(w http.ResponseWriter, r *http.Request, db *sql.DB, apikey1 string) {
+	var geocodeResp GeocodeResponse
 	location := r.URL.Query().Get("location")
+	toleranceStr := r.URL.Query().Get("tolerance")
+	tolerance, err := strconv.ParseFloat(toleranceStr, 32)
+	if err != nil {
+		http.Error(w, "Invalid tolerance value", http.StatusBadRequest)
+		return
+	}
 
 	lat := r.URL.Query().Get("lat")
 	if lat != "" {
-
+		// if lat is provided, we assume lng is also provided and we just return the location as the address, without calling the geocoding API
+		// mimic a response from the google api
+		geocodeResp.Status = "OK"
+		geocodeResp.Results = append(geocodeResp.Results, Result{
+			Type: "typexxx",
+			Geometry: Geometry{
+				Location: Location{
+					Lat: lat,
+					Lng: r.URL.Query().Get("lng"),
+				},
+			},
+			Address: "addresxxx",
+		})
 	} else {
+		// query the google api given the name of the location, and return the lat and lng
 		url := fmt.Sprintf("https://maps.googleapis.com/maps/api/geocode/xml?key=%s&address=%s", apikey1, location)
 		// Simple GET request
 		resp, err := http.Get(url)
@@ -422,22 +443,81 @@ func coordsHandler(w http.ResponseWriter, r *http.Request, db *sql.DB, apikey1 s
 		//fmt.Printf("response = %s", body)
 
 		// Parse the XML response
-		var geocodeResp GeocodeResponse
 		err = xml.Unmarshal(body, &geocodeResp)
 		if err != nil {
 			http.Error(w, "Error parsing XML: ", http.StatusInternalServerError)
 			return
 		}
-
-		if geocodeResp.Status == "OK" {
-			fmt.Println("Geocode Type:", geocodeResp.Results[0].Type)
-			fmt.Println("Geocode Lat:", geocodeResp.Results[0].Geometry.Location.Lat)
-			fmt.Println("Geocode Lng:", geocodeResp.Results[0].Geometry.Location.Lng)
-			fmt.Println("Geocode Address:", geocodeResp.Results[0].Address)
-		} else {
-			http.Error(w, "Geocoding API error: "+geocodeResp.Status, http.StatusInternalServerError)
-		}
 	}
+
+	if geocodeResp.Status == "OK" {
+		var matchingTrackIds []int
+		for _, result := range geocodeResp.Results {
+			/*
+				fmt.Println("Geocode Type:", result.Type)
+				fmt.Println("Geocode Lat:", result.Geometry.Location.Lat)
+				fmt.Println("Geocode Lng:", result.Geometry.Location.Lng)
+				fmt.Println("Geocode Address:", result.Address)
+			*/
+			fLat, err := strconv.ParseFloat(result.Geometry.Location.Lat, 64)
+			if err != nil {
+				http.Error(w, "Error parsing latitude: "+err.Error(), http.StatusBadRequest)
+				return
+			}
+			fLng, err := strconv.ParseFloat(result.Geometry.Location.Lng, 64)
+			if err != nil {
+				http.Error(w, "Error parsing longitude: "+err.Error(), http.StatusBadRequest)
+				return
+			}
+			matchingTrackIds = append(matchingTrackIds, getMatchingTracks(db, fLat, fLng, tolerance)...)
+		}
+		//fmt.Println("Matching Track IDs:", matchingTrackIds)
+		switch len(matchingTrackIds) {
+		case 0:
+			http.Error(w, "No matching tracks found", http.StatusNotFound)
+		default:
+			idsStr := make([]string, len(matchingTrackIds))
+			for i, id := range matchingTrackIds {
+				idsStr[i] = strconv.Itoa(id)
+			}
+			http.Redirect(w, r, "/summary?qt=trackidin&ids="+strings.Join(idsStr, ","), http.StatusSeeOther)
+		}
+	} else {
+		http.Error(w, "Geocoding API error: "+geocodeResp.Status, http.StatusInternalServerError)
+	}
+}
+
+func getMatchingTracks(db *sql.DB, lat float64, lng float64, tolerance float64) []int {
+	west := lng - tolerance
+	east := lng + tolerance
+	north := lat + tolerance
+	south := lat - tolerance
+
+	query := "SELECT track_id FROM points, tracks WHERE longitude >= ? AND longitude <= ? AND latitude <= ? AND latitude >= ? AND points.track_id=tracks.id GROUP BY track_id, source ORDER BY track_id;"
+
+	args := []interface{}{west, east, north, south}
+	stmt, err := db.Prepare(query)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query(args...)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close()
+
+	trackIds := []int{}
+	for rows.Next() {
+		var trackId int
+		err = rows.Scan(&trackId)
+		if err != nil {
+			log.Fatal(err)
+		}
+		trackIds = append(trackIds, trackId)
+	}
+	return trackIds
 }
 
 func grHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
