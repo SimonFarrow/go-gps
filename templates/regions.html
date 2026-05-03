@@ -10,10 +10,10 @@
 <body>
 
 	{{template "topnav" . }}
+	<h1 align="center">Regions</h1>
 
 	<table align="center">
 		<tr>
-			<th>Id</th>
 			<th>Description</th>
 			<th>West</th>
 			<th>East</th>
@@ -23,8 +23,7 @@
 		</tr>
 		{{range .}}
 		<tr class="{{if eq (mod .SeqNum 2) 0}}even{{else}}odd{{end}}">
-			<td><a href="/summary?qt=region&region={{.Description}}">{{.Id}}</a></td>
-			<td>{{.Description}}</td>
+			<td><a href="/summary?qt=region&region={{.Description}}">{{.Description}}</a></td>
 			<td style="text-align:right">{{printf "%.2f" .West}}</td>
 			<td style="text-align:right">{{printf "%.2f" .East}}</td>
 			<td style="text-align:right">{{printf "%.2f" .North}}</td>

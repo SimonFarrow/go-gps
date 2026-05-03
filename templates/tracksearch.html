@@ -66,11 +66,11 @@
 			<table align ="center">
 				<tr>
 					<td><label for="location">Location:</label></td><td><input type="text" name="location" id="location" onKeyUp="btnActivation()"/>
-					<td align="center"><input type="submit" value="Search Location" id="location_button" formaction="/cgi-bin/gps/coords.pl" class="button button1" disabled/></td>
+					<td align="center"><input type="submit" value="Search Location" id="location_button" formaction="/coords" class="button button1" disabled/></td>
 				</tr>
 				<tr>
 					<td><label for="gridref">Grid Ref:</label></td><td><input type="text" name="gridref" id="gridref" onKeyUp="btnActivation()" style="text-transform: uppercase" pattern="[A-Z]{2}(\d{6}|\d{8})" /></td>
-					<td align="center"><input type="submit" value="Search Gridref" id="gridref_button" formaction="/cgi-bin/gps/gr.pl" class="button button1" disabled/></td>
+					<td align="center"><input type="submit" value="Search Gridref" id="gridref_button" formaction="/gr" class="button button1" disabled/></td>
 				</tr>
 				<tr>
 					<td><label for="tolerance">Tolerance:</label></td><td><input type="number" name="tolerance" id="tolerance" value="0.0001" step="0.0001" min="0.0001" max="1.0000" onKeyUp="btnActivation()"/></td>
@@ -80,7 +80,7 @@
 
 		<br/><br/>
 
-		<form name="date_range" action="/cgi-bin/gps/summary.pl" method="get">
+		<form name="date_range" action="/summary" method="get">
 			<input type="hidden" name="qt" value="date_range"/>
 			<table align ="center">
 				<tr>
@@ -93,7 +93,7 @@
 
 		<br/><br/>
 
-		<form name="distance_range" action="/cgi-bin/gps/summary.pl" method="get">
+		<form name="distance_range" action="/summary" method="get">
 			<input type="hidden" name="qt" value="distance_range"/>
 			<table align ="center">
 				<tr>

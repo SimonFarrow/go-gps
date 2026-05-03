@@ -376,6 +376,14 @@ func databasestatsHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	renderTemplate(w, "databasestats", nil)
 }
 
+// Tracksearch handlers
+func coordsHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+	panic("unimplemented")
+}
+func grHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+	panic("unimplemented")
+}
+
 // parsePositiveInt
 // ===
 func parsePositiveInt(s string) (int, error) {
@@ -703,6 +711,12 @@ func main() {
 	})
 	mux.HandleFunc("/summary/", func(w http.ResponseWriter, r *http.Request) {
 		summaryHandler(w, r, db)
+	})
+	mux.HandleFunc("/gr/", func(w http.ResponseWriter, r *http.Request) {
+		grHandler(w, r, db)
+	})
+	mux.HandleFunc("/coords/", func(w http.ResponseWriter, r *http.Request) {
+		coordsHandler(w, r, db)
 	})
 	log.Fatal(http.ListenAndServe(":8080", mux))
 }
