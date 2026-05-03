@@ -87,6 +87,44 @@ type Track struct {
 	SeqNum      int
 }
 
+type RegionEntry struct {
+	Region        string  `db:"region"`
+	Tracks        int     `db:"tracks"`
+	TotalDistance float32 `db:"total_distance"`
+	Shortest      float32 `db:"shortest"`
+	Average       float32 `db:"average"`
+	Longest       float32 `db:"longest"`
+	Type          string  `db:"type"`
+}
+
+type TypeEntry struct {
+	Type          string  `db:"type"`
+	Tracks        int     `db:"tracks"`
+	TotalDistance float32 `db:"total_distance"`
+	Shortest      float32 `db:"shortest_distance"`
+	Average       float32 `db:"average_distance"`
+	Longest       float32 `db:"longest_distance"`
+}
+
+type YearEntry struct {
+	Year          int     `db:"year"`
+	Tracks        int     `db:"tracks"`
+	TotalDistance float32 `db:"total_distance"`
+	Shortest      float32 `db:"shortest_distance"`
+	Average       float32 `db:"average_distance"`
+	Longest       float32 `db:"longest_distance"`
+	Type          string  `db:"type"`
+}
+
+type RegionsEntry struct {
+	Id    int     `db:"id"`
+	West  float32 `db:"west"`
+	East  float32 `db:"east"`
+	North float32 `db:"north"`
+	South float32 `db:"south"`
+	Level int     `db:"level"`
+}
+
 type Page struct {
 	Title           string
 	Tracks          []Track
@@ -120,7 +158,7 @@ func pageLink(p *Page, order_by, order string) template.URL {
 
 // renderTemplate
 // ===
-func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
+func renderTemplate(w http.ResponseWriter, tmpl string, p any) {
 	err := templates.ExecuteTemplate(w, tmpl+".html", p)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -312,7 +350,7 @@ func latestwalkHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	renderTemplate(w, "latestwalk", nil)
 }
 func byregionHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
-	renderTemplate(w, "byregion", nil)
+	renderTemplate(w, "byregion", readByRegion(db))
 }
 func bytypeHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	renderTemplate(w, "bytype", nil)
@@ -393,6 +431,43 @@ func readTracks(db *sql.DB, orderBy string, order string, whereClause string, ar
 		tracks = append(tracks, track)
 	}
 	return tracks
+}
+
+// readByRegion
+// ===
+func readByRegion(db *sql.DB) []RegionEntry {
+	query := "SELECT region, tracks, total_distance, shortest, average, longest, type FROM ByRegion ORDER BY region ASC"
+
+	stmt, err := db.Prepare(query)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close()
+
+	regionEntries := []RegionEntry{}
+	for rows.Next() {
+		regionEntry := RegionEntry{}
+		err = rows.Scan(
+			&regionEntry.Region,
+			&regionEntry.Tracks,
+			&regionEntry.TotalDistance,
+			&regionEntry.Shortest,
+			&regionEntry.Average,
+			&regionEntry.Longest,
+			&regionEntry.Type,
+		)
+		if err != nil {
+			log.Fatal(err)
+		}
+		regionEntries = append(regionEntries, regionEntry)
+	}
+	return regionEntries
 }
 
 // openDatabase

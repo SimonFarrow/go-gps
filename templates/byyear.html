@@ -2,15 +2,27 @@
 <!-- byyear.html page called from landing page -->
 <html>
 
-	<head>
-		<link rel="stylesheet" type="text/css" href="/html/gps.css" />
-		<title>By Year</title>
-	</head>
+<head>
+	<link rel="stylesheet" type="text/css" href="/html/gps.css" />
+	<title>By Year</title>
+</head>
 
-	<body>
+<body>
 
-		{{template "topnav" . }}
+	{{template "topnav" . }}
 
-	</body>
+	<table align="center">
+		<tr>
+			<th>Year</th>
+			<th>Tracks</th>
+			<th>Total Distance</th>
+			<th>Shortest</th>
+			<th>Average</th>
+			<th>Longest</th>
+			<th><Type></th>
+		</tr>
+	</table>
+
+</body>
 
 </html>
