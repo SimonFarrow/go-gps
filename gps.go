@@ -4,6 +4,7 @@
 package main
 
 import (
+	"bytes"
 	"database/sql"
 	"encoding/json"
 	"encoding/xml"
@@ -520,8 +521,106 @@ func getMatchingTracks(db *sql.DB, lat float64, lng float64, tolerance float64) 
 	return trackIds
 }
 
+var MapCoords = make(map[string][2]float64)
+
 func grHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
-	panic("unimplemented")
+	gr := `400 1200 HP
+300 1100 HT HU
+100 1000 HW HX HY HZ
+0 900 NA NB NC ND
+0 800 NF NG NH NJ NK
+0 700 NL NM NN NO
+100 600 NR NS NT NU
+100 500 NW NX NY NZ OV
+200 400 SC SD SE TA
+200 300 SH SJ SK TF TG
+100 200 SM SN SO SP TL TM
+100 100 SR SS ST SU TQ TR
+0 0 SV SW SZ SY SZ TV`
+
+	lines := strings.Split(gr, "\n")
+	for _, line := range lines {
+		fields := strings.Fields(line)
+		e, err := strconv.Atoi(fields[0])
+		if err != nil {
+			log.Fatal(err)
+		}
+		n, err := strconv.Atoi(fields[1])
+		if err != nil {
+			log.Fatal(err)
+		}
+		for i, code := range fields[2:] {
+			// Process each code
+			MapCoords[code] = [2]float64{float64(e) + float64(i)*100.0, float64(n) * 1000.0}
+		}
+	}
+
+	gridref := r.URL.Query().Get("gridref")
+	toleranceStr := r.URL.Query().Get("tolerance")
+	tolerance, err := strconv.ParseFloat(toleranceStr, 64)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("gridref = %s, tolerance = %f", gridref, tolerance)
+	gr2ll(gridref)
+}
+
+func gr2ll(gr string) (float64, float64) {
+	sq := gr[0:2]
+
+	var e, n float64
+	switch len(gr) {
+	case 8:
+		eStr := gr[2:5]
+		nStr := gr[5:]
+		e, err := strconv.ParseFloat(eStr, 64)
+		if err != nil {
+			log.Fatal(err)
+		}
+		n, err := strconv.ParseFloat(nStr, 64)
+		if err != nil {
+			log.Fatal(err)
+		}
+		e *= 100.0
+		n *= 100.0
+	case 10:
+		eStr := gr[2:6]
+		nStr := gr[6:]
+		e, err := strconv.ParseFloat(eStr, 64)
+		if err != nil {
+			log.Fatal(err)
+		}
+		n, err := strconv.ParseFloat(nStr, 64)
+		if err != nil {
+			log.Fatal(err)
+		}
+		e *= 10.0
+		n *= 10.0
+	default:
+		log.Fatal("Invalid grid reference length")
+	}
+
+	return getll(MapCoords[sq][0]+e, MapCoords[sq][1]+n)
+}
+
+func getll(e float64, n float64) (float64, float64) {
+	url := fmt.Sprintf("https://webapps.bgs.ac.uk/data/webservices/CoordConvert_LL_BNG.cfc?method=BNGtoLatLng&easting=%f&northing=%f", e, n)
+	resp, err := http.Post(url, "application/x-www-form-urlencoded", bytes.NewBuffer([]byte("query=libwwww-perl&mode=dist")))
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+	var responseMap map[string]interface{}
+	err = json.Unmarshal(body, &responseMap)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return responseMap["latitude"].(float64), responseMap["longitude"].(float64)
 }
 
 // parsePositiveInt
