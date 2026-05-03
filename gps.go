@@ -6,6 +6,7 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"html/template"
 	"io"
@@ -142,6 +143,27 @@ type SummaryPage struct {
 	QueryType       string
 	QueryParameters string
 	DropList        []string
+}
+
+// google geocode xml response
+type GeocodeResponse struct {
+	Status  string   `xml:"status"`
+	Results []Result `xml:"result"`
+}
+
+type Result struct {
+	Type     string   `xml:"type"`
+	Geometry Geometry `xml:"geometry"`
+	Address  string   `xml:"formatted_address"`
+}
+
+type Geometry struct {
+	Location Location `xml:"location"`
+}
+
+type Location struct {
+	Lat string `xml:"lat"`
+	Lng string `xml:"lng"`
 }
 
 // Globals
@@ -377,9 +399,47 @@ func databasestatsHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 }
 
 // Tracksearch handlers
-func coordsHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
-	panic("unimplemented")
+func coordsHandler(w http.ResponseWriter, r *http.Request, db *sql.DB, apikey1 string) {
+	location := r.URL.Query().Get("location")
+
+	lat := r.URL.Query().Get("lat")
+	if lat != "" {
+
+	} else {
+		url := fmt.Sprintf("https://maps.googleapis.com/maps/api/geocode/xml?key=%s&address=%s", apikey1, location)
+		// Simple GET request
+		resp, err := http.Get(url)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer resp.Body.Close()
+
+		// Read the response body
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			log.Fatal(err)
+		}
+		//fmt.Printf("response = %s", body)
+
+		// Parse the XML response
+		var geocodeResp GeocodeResponse
+		err = xml.Unmarshal(body, &geocodeResp)
+		if err != nil {
+			http.Error(w, "Error parsing XML: ", http.StatusInternalServerError)
+			return
+		}
+
+		if geocodeResp.Status == "OK" {
+			fmt.Println("Geocode Type:", geocodeResp.Results[0].Type)
+			fmt.Println("Geocode Lat:", geocodeResp.Results[0].Geometry.Location.Lat)
+			fmt.Println("Geocode Lng:", geocodeResp.Results[0].Geometry.Location.Lng)
+			fmt.Println("Geocode Address:", geocodeResp.Results[0].Address)
+		} else {
+			http.Error(w, "Geocoding API error: "+geocodeResp.Status, http.StatusInternalServerError)
+		}
+	}
 }
+
 func grHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	panic("unimplemented")
 }
@@ -667,6 +727,7 @@ func main() {
 
 	configMap := readConfigFile(configFileStr)
 	databaseInfo := configMap["database"].(map[string]any)
+	apikey1 := configMap["apikey1"].(string)
 	fmt.Println(databaseInfo["dbtype"])
 	db := openDatabase(databaseInfo)
 	defer db.Close()
@@ -716,7 +777,7 @@ func main() {
 		grHandler(w, r, db)
 	})
 	mux.HandleFunc("/coords/", func(w http.ResponseWriter, r *http.Request) {
-		coordsHandler(w, r, db)
+		coordsHandler(w, r, db, apikey1)
 	})
 	log.Fatal(http.ListenAndServe(":8080", mux))
 }
