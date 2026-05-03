@@ -117,12 +117,13 @@ type YearEntry struct {
 }
 
 type RegionsEntry struct {
-	Id    int     `db:"id"`
-	West  float32 `db:"west"`
-	East  float32 `db:"east"`
-	North float32 `db:"north"`
-	South float32 `db:"south"`
-	Level int     `db:"level"`
+	Id          int     `db:"id"`
+	Description string  `db:"description"`
+	West        float32 `db:"west"`
+	East        float32 `db:"east"`
+	North       float32 `db:"north"`
+	South       float32 `db:"south"`
+	Level       int     `db:"level"`
 }
 
 type Page struct {
@@ -353,13 +354,13 @@ func byregionHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	renderTemplate(w, "byregion", readByRegion(db))
 }
 func bytypeHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
-	renderTemplate(w, "bytype", nil)
+	renderTemplate(w, "bytype", readByType(db))
 }
 func byyearHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
-	renderTemplate(w, "byyear", nil)
+	renderTemplate(w, "byyear", readByYear(db))
 }
 func regionsHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
-	renderTemplate(w, "regions", nil)
+	renderTemplate(w, "regions", readRegions(db))
 }
 func tracksearchHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	renderTemplate(w, "tracksearch", nil)
@@ -468,6 +469,116 @@ func readByRegion(db *sql.DB) []RegionEntry {
 		regionEntries = append(regionEntries, regionEntry)
 	}
 	return regionEntries
+}
+
+// readByType
+// ===
+func readByType(db *sql.DB) []TypeEntry {
+	query := "SELECT type, tracks, total_distance, shortest, average, longest FROM ByType ORDER BY type ASC"
+
+	stmt, err := db.Prepare(query)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close()
+
+	typeEntries := []TypeEntry{}
+	for rows.Next() {
+		typeEntry := TypeEntry{}
+		err = rows.Scan(
+			&typeEntry.Type,
+			&typeEntry.Tracks,
+			&typeEntry.TotalDistance,
+			&typeEntry.Shortest,
+			&typeEntry.Average,
+			&typeEntry.Longest,
+		)
+		if err != nil {
+			log.Fatal(err)
+		}
+		typeEntries = append(typeEntries, typeEntry)
+	}
+	return typeEntries
+}
+
+// readByYear
+// ===
+func readByYear(db *sql.DB) []YearEntry {
+	query := "SELECT year, tracks, total_distance, shortest, average, longest, type FROM ByYear ORDER BY year ASC"
+
+	stmt, err := db.Prepare(query)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close()
+
+	yearEntries := []YearEntry{}
+	for rows.Next() {
+		yearEntry := YearEntry{}
+		err = rows.Scan(
+			&yearEntry.Year,
+			&yearEntry.Tracks,
+			&yearEntry.TotalDistance,
+			&yearEntry.Shortest,
+			&yearEntry.Average,
+			&yearEntry.Longest,
+			&yearEntry.Type,
+		)
+		if err != nil {
+			log.Fatal(err)
+		}
+		yearEntries = append(yearEntries, yearEntry)
+	}
+	return yearEntries
+}
+
+// readRegions
+// ===
+func readRegions(db *sql.DB) []RegionsEntry {
+	query := "SELECT id, description, west, east, north, south, level FROM regions ORDER BY description ASC"
+
+	stmt, err := db.Prepare(query)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close()
+
+	regionsEntries := []RegionsEntry{}
+	for rows.Next() {
+		regionsEntry := RegionsEntry{}
+		err = rows.Scan(
+			&regionsEntry.Id,
+			&regionsEntry.Description,
+			&regionsEntry.West,
+			&regionsEntry.East,
+			&regionsEntry.North,
+			&regionsEntry.South,
+			&regionsEntry.Level,
+		)
+		if err != nil {
+			log.Fatal(err)
+		}
+		regionsEntries = append(regionsEntries, regionsEntry)
+	}
+	return regionsEntries
 }
 
 // openDatabase
