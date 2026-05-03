@@ -2,16 +2,17 @@
 <!-- bytype.html page called from landing page -->
 <html>
 
-	<head>
-		<link rel="stylesheet" type="text/css" href="/html/gps.css" />
-		<title>By Type</title>
-	</head>
+<head>
+	<link rel="stylesheet" type="text/css" href="/html/gps.css" />
+	<title>By Type</title>
+</head>
 
-	<body>
+<body>
 
-		{{template "topnav" . }}
+	{{template "topnav" . }}
+	<h1 align="center">Tracks By Type</h1>
 
-			<table align="center">
+	<table align="center">
 		<tr>
 			<th>Type</th>
 			<th>Tracks</th>
@@ -20,8 +21,18 @@
 			<th>Average</th>
 			<th>Longest</th>
 		</tr>
+		{{range .}}
+		<tr class="{{if eq (mod .SeqNum 2) 0}}even{{else}}odd{{end}}">
+			<td><a href="/summary?qt=type&type={{.Type}}">{{.Type}}</a></td>
+			<td style="text-align:right">{{.Tracks}}</td>
+			<td style="text-align:right">{{printf "%.2f" .TotalDistance}}</td>
+			<td style="text-align:right">{{printf "%.2f" .Shortest}}</td>
+			<td style="text-align:right">{{printf "%.2f" .Average}}</td>
+			<td style="text-align:right">{{printf "%.2f" .Longest}}</td>
+		</tr>
+		{{end}}
 	</table>
 
-	</body>
+</body>
 
 </html>

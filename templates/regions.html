@@ -21,6 +21,17 @@
 			<th>South</th>
 			<th>Level</th>
 		</tr>
+		{{range .}}
+		<tr class="{{if eq (mod .SeqNum 2) 0}}even{{else}}odd{{end}}">
+			<td><a href="/summary?qt=region&region={{.Description}}">{{.Id}}</a></td>
+			<td>{{.Description}}</td>
+			<td style="text-align:right">{{printf "%.2f" .West}}</td>
+			<td style="text-align:right">{{printf "%.2f" .East}}</td>
+			<td style="text-align:right">{{printf "%.2f" .North}}</td>
+			<td style="text-align:right">{{printf "%.2f" .South}}</td>
+			<td style="text-align:right">{{.Level}}</td>
+		</tr>
+		{{end}}
 	</table>
 
 </body>

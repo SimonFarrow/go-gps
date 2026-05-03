@@ -61,7 +61,7 @@ func GetTemplates() *template.Template {
 			}
 			return result
 		},
-		"headerLink": func(label, field string, p *Page) template.HTML {
+		"headerLink": func(label, field string, p *SummaryPage) template.HTML {
 			nextOrder := "ASC"
 			arrow := ""
 			if p.OrderBy == field {
@@ -76,7 +76,7 @@ func GetTemplates() *template.Template {
 			url := fmt.Sprintf("./?pageSize=%d&Page=%d%s", p.PageSize, p.CurrentPage, pageLink(p, field, nextOrder))
 			return template.HTML(fmt.Sprintf(`<a href="%s">%s%s</a>`, url, label, arrow))
 		},
-		"pageLink": func(p *Page) template.URL {
+		"pageLink": func(p *SummaryPage) template.URL {
 			return pageLink(p, p.OrderBy, p.Order)
 		},
 		"columnVisibility": func(dropList []string, name string) template.CSS {

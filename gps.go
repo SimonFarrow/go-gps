@@ -95,6 +95,7 @@ type RegionEntry struct {
 	Average       float32 `db:"average"`
 	Longest       float32 `db:"longest"`
 	Type          string  `db:"type"`
+	SeqNum        int
 }
 
 type TypeEntry struct {
@@ -104,6 +105,7 @@ type TypeEntry struct {
 	Shortest      float32 `db:"shortest_distance"`
 	Average       float32 `db:"average_distance"`
 	Longest       float32 `db:"longest_distance"`
+	SeqNum        int
 }
 
 type YearEntry struct {
@@ -114,6 +116,7 @@ type YearEntry struct {
 	Average       float32 `db:"average_distance"`
 	Longest       float32 `db:"longest_distance"`
 	Type          string  `db:"type"`
+	SeqNum        int
 }
 
 type RegionsEntry struct {
@@ -124,9 +127,10 @@ type RegionsEntry struct {
 	North       float32 `db:"north"`
 	South       float32 `db:"south"`
 	Level       int     `db:"level"`
+	SeqNum      int
 }
 
-type Page struct {
+type SummaryPage struct {
 	Title           string
 	Tracks          []Track
 	CurrentPage     int
@@ -146,7 +150,7 @@ var templates *template.Template
 
 // pageLink
 // ===
-func pageLink(p *Page, order_by, order string) template.URL {
+func pageLink(p *SummaryPage, order_by, order string) template.URL {
 	url := "&order_by=" + order_by + "&order=" + order
 	if p.QueryType != "" {
 		url += "&qt=" + p.QueryType
@@ -330,7 +334,7 @@ func summaryHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		}
 	}
 
-	page := &Page{
+	page := &SummaryPage{
 		Title:           desc,
 		Tracks:          pageTracks,
 		CurrentPage:     currentPage,
@@ -452,6 +456,7 @@ func readByRegion(db *sql.DB) []RegionEntry {
 	defer rows.Close()
 
 	regionEntries := []RegionEntry{}
+	i := 0
 	for rows.Next() {
 		regionEntry := RegionEntry{}
 		err = rows.Scan(
@@ -463,6 +468,8 @@ func readByRegion(db *sql.DB) []RegionEntry {
 			&regionEntry.Longest,
 			&regionEntry.Type,
 		)
+		regionEntry.SeqNum = i
+		i++
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -489,6 +496,7 @@ func readByType(db *sql.DB) []TypeEntry {
 	defer rows.Close()
 
 	typeEntries := []TypeEntry{}
+	i := 0
 	for rows.Next() {
 		typeEntry := TypeEntry{}
 		err = rows.Scan(
@@ -499,6 +507,8 @@ func readByType(db *sql.DB) []TypeEntry {
 			&typeEntry.Average,
 			&typeEntry.Longest,
 		)
+		typeEntry.SeqNum = i
+		i++
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -510,7 +520,7 @@ func readByType(db *sql.DB) []TypeEntry {
 // readByYear
 // ===
 func readByYear(db *sql.DB) []YearEntry {
-	query := "SELECT year, tracks, total_distance, shortest, average, longest, type FROM ByYear ORDER BY year ASC"
+	query := "SELECT year, tracks, total_distance, shortest, average, longest, type FROM ByYear ORDER BY type DESC, year ASC"
 
 	stmt, err := db.Prepare(query)
 	if err != nil {
@@ -525,6 +535,7 @@ func readByYear(db *sql.DB) []YearEntry {
 	defer rows.Close()
 
 	yearEntries := []YearEntry{}
+	i := 0
 	for rows.Next() {
 		yearEntry := YearEntry{}
 		err = rows.Scan(
@@ -536,6 +547,8 @@ func readByYear(db *sql.DB) []YearEntry {
 			&yearEntry.Longest,
 			&yearEntry.Type,
 		)
+		yearEntry.SeqNum = i
+		i++
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -562,6 +575,7 @@ func readRegions(db *sql.DB) []RegionsEntry {
 	defer rows.Close()
 
 	regionsEntries := []RegionsEntry{}
+	i := 0
 	for rows.Next() {
 		regionsEntry := RegionsEntry{}
 		err = rows.Scan(
@@ -573,6 +587,8 @@ func readRegions(db *sql.DB) []RegionsEntry {
 			&regionsEntry.South,
 			&regionsEntry.Level,
 		)
+		regionsEntry.SeqNum = i
+		i++
 		if err != nil {
 			log.Fatal(err)
 		}

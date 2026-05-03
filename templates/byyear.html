@@ -10,6 +10,7 @@
 <body>
 
 	{{template "topnav" . }}
+	<h1 align="center">Tracks By Year</h1>
 
 	<table align="center">
 		<tr>
@@ -19,8 +20,19 @@
 			<th>Shortest</th>
 			<th>Average</th>
 			<th>Longest</th>
-			<th><Type></th>
+			<th>Type</th>
 		</tr>
+		{{range .}}
+		<tr class="{{if eq (mod .SeqNum 2) 0}}even{{else}}odd{{end}}">
+			<td><a href="/summary?qt=year&year={{.Year}}&type={{.Type}}">{{.Year}}</a></td>
+			<td style="text-align:right">{{.Tracks}}</td>
+			<td style="text-align:right">{{printf "%.2f" .TotalDistance}}</td>
+			<td style="text-align:right">{{printf "%.2f" .Shortest}}</td>
+			<td style="text-align:right">{{printf "%.2f" .Average}}</td>
+			<td style="text-align:right">{{printf "%.2f" .Longest}}</td>
+			<td>{{.Type}}</td>
+		</tr>
+		{{end}}
 	</table>
 
 </body>
