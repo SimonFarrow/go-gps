@@ -405,7 +405,7 @@ func coordsHandler(w http.ResponseWriter, r *http.Request, db *sql.DB, apikey1 s
 	var geocodeResp GeocodeResponse
 	location := r.URL.Query().Get("location")
 	toleranceStr := r.URL.Query().Get("tolerance")
-	tolerance, err := strconv.ParseFloat(toleranceStr, 32)
+	tolerance, err := strconv.ParseFloat(toleranceStr, 64)
 	if err != nil {
 		http.Error(w, "Invalid tolerance value", http.StatusBadRequest)
 		return
@@ -521,9 +521,11 @@ func getMatchingTracks(db *sql.DB, lat float64, lng float64, tolerance float64) 
 	return trackIds
 }
 
+// global OS Grid data is stored in a map for quick lookup when converting grid references to lat and lng.
+// The map is populated from the hardcoded grid reference data in the grHandler function.
 var MapCoords = make(map[string][2]float64)
 
-func grHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+func grHandler(w http.ResponseWriter, r *http.Request) {
 	gr := `400 1200 HP
 300 1100 HT HU
 100 1000 HW HX HY HZ
@@ -543,11 +545,13 @@ func grHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		fields := strings.Fields(line)
 		e, err := strconv.Atoi(fields[0])
 		if err != nil {
-			log.Fatal(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
 		n, err := strconv.Atoi(fields[1])
 		if err != nil {
-			log.Fatal(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
 		for i, code := range fields[2:] {
 			// Process each code
@@ -559,14 +563,17 @@ func grHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	toleranceStr := r.URL.Query().Get("tolerance")
 	tolerance, err := strconv.ParseFloat(toleranceStr, 64)
 	if err != nil {
-		log.Fatal(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
-	//fmt.Printf("gridref = %s, tolerance = %f", gridref, tolerance)
+	fmt.Printf("gridref = %s, tolerance = %f\n", gridref, tolerance)
 	lat, lng := gr2ll(gridref)
 
 	http.Redirect(w, r, "/coords?lat="+strconv.FormatFloat(lat, 'f', -1, 64)+"&long="+strconv.FormatFloat(lng, 'f', -1, 64)+"&tolerance="+strconv.FormatFloat(tolerance, 'f', -1, 64), http.StatusSeeOther)
 }
 
+// gr2ll takes a grid reference and returns lat and lng by calling the getll function,
+// which in turn calls the BNG to LatLng API provided by the British Geological Survey.
 func gr2ll(gr string) (float64, float64) {
 	sq := gr[0:2]
 
@@ -605,6 +612,8 @@ func gr2ll(gr string) (float64, float64) {
 	return getll(MapCoords[sq][0]+e, MapCoords[sq][1]+n)
 }
 
+// getll takes easting and northing and returns lat and lng by calling the BNG to LatLng API provided by the British Geological Survey.
+// This is used to convert the grid reference to lat and lng for querying the database for matching tracks.
 func getll(e float64, n float64) (float64, float64) {
 	url := fmt.Sprintf("https://webapps.bgs.ac.uk/data/webservices/CoordConvert_LL_BNG.cfc?method=BNGtoLatLng&easting=%f&northing=%f", e, n)
 	resp, err := http.Post(url, "application/x-www-form-urlencoded", bytes.NewBuffer([]byte("query=libwwww-perl&mode=dist")))
@@ -963,7 +972,7 @@ func main() {
 		summaryHandler(w, r, db)
 	})
 	mux.HandleFunc("/gr/", func(w http.ResponseWriter, r *http.Request) {
-		grHandler(w, r, db)
+		grHandler(w, r)
 	})
 	mux.HandleFunc("/coords/", func(w http.ResponseWriter, r *http.Request) {
 		coordsHandler(w, r, db, apikey1)
